@@ -279,5 +279,59 @@ views：17 个视图态全部有内容
 
 构建实测：`npm run build` 产出 `TickFlow-Setup-1.13.0.exe` 116.0 MB + `.blockmap` + `SHA256SUMS.txt`；`release.mjs --tag=v1.13.0` 生成清单（sha256 `7e0c1041…`，GitHub + ghproxy 两个下载源）。单测 72 条全绿。
 
+---
+
+## 13. 顶部岛视觉重做（2026-11-21，U-08）
+
+| 项 | 取值 |
+|---|---|
+| 岛体填充 | 固定 `#060606`（`--isl-ink`），深色背景融合、边缘可见 |
+| 圆角 | 默认 26px；仍跟随设置 `m3.radius`（8–40） |
+| 边缘 | 无 border；`inset 0 0 0 1px rgba(255,255,255,.035)` 做玻璃边，无硬描边 |
+| 顶部内高光 | `inset 0 1px 0 rgba(255,255,255,.09)`（展开态 .11） |
+| 液态玻璃折射 | `radial-gradient(120% 85% at 18% -20%, rgba(255,255,255,.07)…)` + 右下 .035 + 顶部纵向 .045→透明 |
+| 接触阴影（收起） | `0 1px 2px rgba(0,0,0,.60), 0 3px 8px rgba(0,0,0,.36)` |
+| 中层扩散（收起） | `0 12px 30px rgba(0,0,0,.40)` |
+| 外层环境（收起） | `0 30px 80px -12px rgba(0,0,0,.58)` |
+| 展开加深 | `0 2px 4px .65, 0 5px 14px .42, 0 18px 44px .48, 0 40px 100px -12px .65` |
+| accent 辉光 | `0 0 34px -7px accent 44%` + `0 0 90px -20px accent 62%`，颜色随方案 |
+| 展开脉冲 | `::after` 内高光 opacity 0→.9→.28，2.6s ease-out，播放 2 次后常亮 .28 |
+| 留白 | 窗口四周 26px 横向、上 6 / 下 24，阴影与辉光真正溢出窗口 |
+| 新 bounds | 收起 412×82；展开 412×202；提醒展开 412×257（x=544, y=8 @1400×900） |
+| 减少动态 | `prefers-reduced-motion` 下脉冲 animation:none、静态 opacity .28；过渡关闭 |
+
+三态、快照、动作、降级逻辑未改。截图：`%TEMP%\tickflow-m3-glass-collapsed.png`、`tickflow-m3-glass-expanded.png`、`tickflow-m3-glass-remind.png`。
+
+---
+
+## 14. 移除灵动岛（2026-11-21，U-09）
+
+| 删除项 | 内容 |
+|---|---|
+| 顶部岛文件 | `src/main/ipc/top-island.js`、`island-protocol.js`、`preload-island.js`、`src/renderer/top-island.html`、`css/top-island.css`、`js/modules/top-island.js` |
+| 底部岛 | `src/renderer/js/modules/island.js`、`index.html` 的 `#island` 与脚本、`features.css` §8 全部样式 |
+| 主进程 | top-island 域注册、托盘「顶部迷你岛」、宿主 attach、全屏隐藏、m3 冒烟场景与岛截图/同步探针 |
+| preload | `topIsland` 全部方法、`tf:island:action` 监听 |
+| 渲染层 | 快照/动作回传/applyM3Settings/islandRefresh、Esc 岛分支、Ctrl+Alt+I、命令面板岛命令、遮罩联动 |
+| 设置 | 「灵动岛」分类、底部岛/顶部岛/内容/归属全部控件、快捷键与诊断里的岛行 |
+| Store | 删除 `settings.island`、`settings.m3` 默认与归一；迁移时 `delete` 旧字段，老数据不报错 |
+| 提醒 | 回到 v1.12 方式：`TF.reminderPopup(tk)` + 系统通知，`notifiedOn` 去重；无岛分支 |
+| 测试 | 删除 `m3-sync.test.mjs`；Store 迁移单测改为断言旧字段被丢弃 |
+
+原快速记录路径由「今天页 Composer」「Ctrl+Alt+Space 全局捕获」「Ctrl+K 命令面板」承接；提醒由右上角提醒卡承接，无功能缺口。
+
+自检：`verify` 8/8；`npm test` 65/65；`views` 17 个视图态 0 console error；`settings` 0 error；`main` 0 error。
+
+---
+
+## 15. 公开 README 与反馈入口（2026-11-21，U-10）
+
+- `README.md` 重写为访客向：软件定位、适合谁、当前版本、下载安装（含 SmartScreen）、三步上手、首次打开、常用操作、数据/备份/卸载、更新、常见问题、反馈。
+- 新增 `docs/DEVELOPMENT.md`：技术栈、目录、边界、开发命令、构建/发布/自动更新说明。
+- 移除公开仓库里的本机口径：开发副本、本机状态、绝对路径、artifacts 限制、锁文件叮嘱。
+- 反馈：B 站为主，GitHub Issues 为另一条；README 与「设置 → 关于」都已加入按钮。
+- 新增 `tf:shell:open-external` 白名单（仅 B 站与 Issues 两个地址）。
+- 仓库 About：面向用户的一句话描述 + topics（electron / windows / todo / task-manager / local-first）。
+
 
 

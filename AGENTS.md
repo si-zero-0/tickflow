@@ -27,11 +27,11 @@ TickFlow（刻度）是本地优先的 Windows 桌面任务/进程管理工具�
 渲染层  src/renderer/js/modules/
 核心层  src/renderer/js/core/store.js · registry.js
 安全桥  src/main/preload.js → window.tfBridge
-主进程  src/main/main.js + ipc/{app,plugins,shell,top-island}.js
+主进程  src/main/main.js + ipc/{app,plugins,shell,update}.js
 ```
 
 1. 渲染层不许 `require`；系统能力走 `tfBridge`，新增能力 = `ipc/<域>.js` 注册 + `preload.js` 白名单。
-2. 主进程不碰业务数据；localStorage 是唯一事实源。M3 顶部岛只接收主窗口快照，不回写 Store。
+2. 主进程不碰业务数据；localStorage 是唯一事实源。
 3. 模块之间不直接调用；走 `TF.bus` / `TF.ext` / `TF.Store`。
 4. 插件不改核心；数据 key 带 `plugin:<id>:` 前缀。
 5. `contextIsolation: true`、`nodeIntegration: false` 不变；IPC 参数必须校验。
@@ -76,7 +76,6 @@ cd src/main && npx electron stage
 - 9 套配色 × 浅/深/系统，正文/元信息 ≥4.5
 - 字号/宽度实时生效并持久化
 - 12 视图 0 console error
-- M3 顶部岛可开关、三态、同步 P95 <100ms、提醒不重复
 - 1060/1400/4K 无穿帮
 - `docs/handoff/IMPLEMENTATION-NOTES.md` 记录所有偏差与假设
 

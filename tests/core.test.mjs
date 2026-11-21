@@ -55,23 +55,21 @@ test('迁移：accent 枚举 / hex / 缺失 / 非法 全部归一', () => {
   });
 });
 
-test('迁移：缺失 wishes 补空数组，island / density / pomo 补齐，tasks 不动', () => {
+test('迁移：缺失 wishes 补空数组，density / pomo 补齐，tasks 不动', () => {
   const d = TF.Store.migrate(legacy({ theme: 'dark', accent: '#5B8CFF' }));
   assert.ok(Array.isArray(d.wishes), 'wishes 应为数组');
   assert.equal(d.wishes.length, 0);
-  assert.equal(d.settings.island.enabled, true);
-  assert.equal(d.settings.island.autoExpand, true);
   assert.equal(d.settings.density, 'normal');
   assert.deepEqual(Object.keys(d.settings.pomo).sort(), ['long', 'rounds', 'short', 'work']);
   assert.equal(d.tasks.length, 2);
   assert.equal(d.tasks[0].title, '任务一');
 });
 
-test('迁移：density 只接受 normal / compact；island 部分缺失按字段补齐', () => {
-  const d = TF.Store.migrate(legacy({ density: 'huge', island: { enabled: false } }));
+test('迁移：density 只接受 normal / compact；旧 island / m3 字段被丢弃且不报错', () => {
+  const d = TF.Store.migrate(legacy({ density: 'huge', island: { enabled: false }, m3: { enabled: true } }));
   assert.equal(d.settings.density, 'normal');
-  assert.equal(d.settings.island.enabled, false, '显式 false 必须保留');
-  assert.equal(d.settings.island.autoExpand, true, '缺失字段按默认补齐');
+  assert.equal(d.settings.island, undefined, '旧 island 不残留');
+  assert.equal(d.settings.m3, undefined, '旧 m3 不残留');
 });
 
 test('迁移：愿望逐条归一（非法状态、缺 doneAt、priority 越界、targetDate 非法、缺 color）', () => {

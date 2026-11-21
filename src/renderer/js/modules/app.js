@@ -39,7 +39,6 @@
       // 局部刷新后重新绑定手动拖拽（R-18）
       if (this.sort === 'manual') TF.bindTaskDnD();
       this.updateSidebarCounts();
-      if (typeof TF.islandRefresh === 'function') TF.islandRefresh();
     },
     /* 只改文本，不重建 sidebar（重建会丢滚动位置、并把展开中的 profile-chip 收起） */
     updateSidebarCounts() {
@@ -68,9 +67,6 @@
       this.renderContent();
       this.renderRightRail();
       this.renderStatusbar();
-      // 岛跟随数据变化重算（island.js 未加载时安全跳过）
-      if (typeof TF.islandRefresh === 'function') TF.islandRefresh();
-      if (typeof TF.pushIslandSnapshot === 'function') TF.pushIslandSnapshot();
     },
     renderSidebar() {
       document.getElementById('sidebar').innerHTML = sidebarHTML();
@@ -95,13 +91,11 @@
       if (!box) return;
       const S2 = S();
       const open = S2.data.tasks.filter(t => !t.done).length;
-      const m3 = (S2.data.settings.m3 || {});
-      const sync = m3.enabled && window.tfBridge && window.tfBridge.topIsland ? '双岛同步' : '顶部岛关闭';
       const running = TF.Pomo && TF.Pomo.running;
       box.innerHTML = `<span class="st-focus ${running ? 'on' : ''}" data-act="st-focus" role="button" tabindex="0" title="${running ? '暂停专注' : '开始专注'}">
           <i class="st-dot"></i>${running ? '专注中 ' + fmtPomo() : '专注'}</span>
         <span class="st-count">${open} 项待办</span>
-        <span class="st-mid">${sync}</span>
+        <span class="st-mid">数据仅存本机</span>
         <span class="st-right">v${TF.VERSION}</span>`;
     },
     renderContent() {
@@ -582,7 +576,6 @@
     TF.scrim(true);
     box.innerHTML = taskDrawerHTML(t);
     bindTaskDrawer(t);
-    if (typeof TF.islandUnderScrim === 'function') TF.islandUnderScrim(true);
     App.render();
   };
 
@@ -782,7 +775,6 @@
     App.selWish = null;
     App.drawerMode = null;
     TF.RM.selected = null;
-    if (typeof TF.islandUnderScrim === 'function') TF.islandUnderScrim(false);
     setTimeout(() => { if (!box.classList.contains('open')) box.innerHTML = ''; }, 240);
     App.render();
   };
@@ -834,7 +826,6 @@
   TF.modal = function (title, body, buttons) {
     const host = document.getElementById('modal-host');
     host.classList.add('open');
-    if (typeof TF.islandDim === 'function') TF.islandDim(true);
     host.innerHTML = `<div class="modal">
       <h2 class="modal-h">${esc(title)}</h2>
       <div class="modal-b">${body}</div>
@@ -849,7 +840,6 @@
     const host = document.getElementById('modal-host');
     if (!host.classList.contains('open')) return;
     host.classList.remove('open');
-    if (typeof TF.islandDim === 'function') TF.islandDim(false);
     setTimeout(() => {
       if (!host.classList.contains('open')) host.innerHTML = '';
     }, 220);
@@ -919,22 +909,6 @@
   /* ================= 设置 ================= */
   /* v1.13：设置改为全屏 #settings-view（左分类 + 右卡片），实现在 settings.js。
      app.js 只保留入口 TF.openSettings 的兜底与底部岛开关。 */
-
-  /* 灵动岛开关：写 Store → 重绘岛 → 只切 .on（不重建设置弹窗） */
-  TF.setIslandSetting = function (key, val) {
-    const s = S().data.settings;
-    s.island = s.island || { enabled: true, autoExpand: true };
-    if (key !== 'enabled' && key !== 'autoExpand') return;
-    s.island[key] = !!val;
-    S().save();
-    if (typeof TF.islandRender === 'function') TF.islandRender();
-    document.querySelectorAll('[data-act="island-set"][data-k="' + key + '"]').forEach(b => {
-      b.classList.toggle('on', (b.dataset.v === '1') === !!val);
-    });
-    TF.toast(key === 'enabled'
-      ? (val ? '灵动岛已开启' : '灵动岛已关闭，恢复右上角提醒卡')
-      : (val ? '到点会自动展开' : '到点只亮状态点'), 'info');
-  };
 
   /* 外观委托：12 处既有调用点不动，实现全部搬到 theme.js / appearance.js（D-4 / §5.2.4） */
   function applyTheme() {
@@ -1145,7 +1119,6 @@
         document.querySelectorAll('#set-density button').forEach(b => b.classList.toggle('on', b.dataset.v === dens));
         break;
       }
-      case 'island-set': TF.setIslandSetting(el.dataset.k, el.dataset.v === '1'); break;
       /* --- 右栏 / 状态栏 --- */
       case 'rail-search': {
         const sb = document.getElementById('search');
@@ -1178,7 +1151,6 @@
           <div><b>Ctrl + K</b><span>命令面板</span></div>
           <div><b>/</b><span>聚焦搜索框</span></div>
           <div><b>Ctrl + Alt + Space</b><span>全局快速捕获</span></div>
-          <div><b>Ctrl + Alt + I</b><span>开合底部灵动岛</span></div>
           <div><b>Esc</b><span>关闭抽屉 / 弹窗 / 面板</span></div>
           <div style="border:0;padding-top:10px;color:var(--text-3)">数据只存在本机；换设备或重置前请先导出 JSON 备份。</div>
         </div>`, [{ label: '知道了', pri: true, fn: TF.closeModal }]);
@@ -1593,10 +1565,6 @@
       if (document.getElementById('modal-host').classList.contains('open')) return TF.closeModal();
       if (document.getElementById('row-menu')) return TF.closeRowMenu();
       if (document.getElementById('theme-pop')) return TF.closeThemePopover();
-      /* 岛只在非收起态消费 Esc，避免抢走抽屉的 Esc */
-      if (TF.Island && TF.Island.state !== 'collapsed' && typeof TF.islandCollapse === 'function') {
-        return TF.islandCollapse();
-      }
       const dw = document.getElementById('drawer');
       if (dw.classList.contains('open')) {
         // 抽屉内先失焦输入，再关闭面板
@@ -1607,14 +1575,6 @@
       return;
     }
     if (typing) return;
-    /* Ctrl/Cmd+Alt+I 开合灵动岛（放在 typing 之后，输入框里不抢键） */
-    if ((e.ctrlKey || e.metaKey) && e.altKey && e.key.toLowerCase() === 'i') {
-      e.preventDefault();
-      if (typeof TF.islandCollapse !== 'function') return;
-      if (TF.Island && TF.Island.state === 'collapsed') TF.islandExpand();
-      else TF.islandCollapse();
-      return;
-    }
     if (e.key === 'n' || e.key === 'N') { e.preventDefault(); handleAct({ dataset: { act: 'new-task' } }); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
@@ -1660,125 +1620,11 @@
     if (e.target === host) TF.closeModal();
   });
 
-  /* ================= M3 顶部岛：主窗唯一 Store → 快照 → 顶部岛 =================
-     原则（03-M3-DUAL-ISLAND §3）：主窗口是唯一事实源；顶部岛只收快照、只发动作。
-     50ms 合并推送；无 tfBridge 的浏览器预览里静默降级。 */
-  let snapTimer = 0;
-  TF.islandSnapshot = function () {
-    const d = S().data, a = TF.getAppearance(), m = d.settings.m3 || {};
-    const pick = (typeof TF.pickCurrentTask === 'function') ? TF.pickCurrentTask(d.tasks, new Date()) : null;
-    const cur = pick && pick.taskId ? S().task(pick.taskId) : null;
-    const due = d.tasks.filter(t => !t.done && t.due && t.dueTime)
-      .sort((x, y) => (x.due + 'T' + x.dueTime).localeCompare(y.due + 'T' + y.dueTime));
-    const tokens = TF.appearanceTokens();
-    return {
-      version: TF.VERSION,
-      ts: Date.now(),
-      theme: {
-        mode: document.documentElement.dataset.mode || 'dark',
-        scheme: a.scheme,
-        bg: tokens.bg, panel: tokens.panel, border: tokens.border,
-        text: tokens.text, text2: tokens.text2, text3: tokens.text3,
-        accent: tokens.accent, accentInk: tokens.accentInk
-      },
-      m3: {
-        width: m.width, opacity: m.opacity, radius: m.radius, content: m.content, minimal: m.minimal
-      },
-      view: { type: App.view.type, label: TITLES[App.view.type] ? TITLES[App.view.type][0] : '今天' },
-      task: cur ? {
-        id: cur.id, title: cur.title, due: cur.due, dueTime: cur.dueTime,
-        pri: cur.priority, start: cur.start, startTime: cur.startTime,
-        pomo: cur.pomo || null
-      } : null,
-      counts: {
-        open: d.tasks.filter(t => !t.done).length,
-        doneToday: pick ? pick.doneToday : 0,
-        today: pick ? pick.todayCount : 0
-      },
-      focus: {
-        running: !!(TF.Pomo && TF.Pomo.running),
-        remain: (TF.Pomo && TF.Pomo.remain) || 0,
-        rule: pick ? pick.rule : null,
-        remainSec: pick ? pick.remainSec : 0
-      },
-      reminders: due.filter(t => t.id !== (cur && cur.id)).slice(0, 3).map(t => ({
-        id: t.id, title: t.title, due: t.due, dueTime: t.dueTime
-      }))
-    };
-  };
-  TF.pushIslandSnapshot = function () {
-    if (!window.tfBridge || !window.tfBridge.topIsland) return;
-    clearTimeout(snapTimer);
-    snapTimer = setTimeout(() => {
-      try { window.tfBridge.topIsland.snapshot(TF.islandSnapshot()); } catch (e) { }
-    }, 50);
-  };
-  /* 设置页改 M3 参数 → 通知主进程重建/调整窗口 → 立即推一份快照 */
-  TF.applyM3Settings = function () {
-    App.renderStatusbar();
-    if (!window.tfBridge || !window.tfBridge.topIsland) {
-      if (S().data.settings.m3.enabled) TF.toast('当前环境不支持顶部岛', 'warn');
-      return;
-    }
-    try {
-      const r = window.tfBridge.topIsland.configure(S().data.settings.m3);
-      if (r && typeof r.then === 'function') {
-        r.then(res => {
-          if (res && res.ok === false) {
-            S().data.settings.m3.enabled = false;
-            S().save();
-            App.renderStatusbar();
-            if (TF.Settings && TF.Settings.open) TF.renderSettingsIfOpen();
-            TF.toast('顶部岛创建失败，已自动关闭', 'warn');
-          }
-        }).catch(() => { });
-      }
-    } catch (e) { }
-    TF.pushIslandSnapshot();
-  };
-
-  /* 顶部岛动作回传：按 id 幂等执行（03 §4） */
-  TF.onIslandAction = function (action) {
-    if (!action || typeof action !== 'object') return;
-    switch (action.type) {
-      case 'toggle-task': {
-        if (!S().task(action.id)) return;
-        S().toggleTask(action.id);
-        App.renderListOnly();
-        if (App.selTask === action.id) {
-          const t = S().task(action.id);
-          if (t) TF.openTask(t.id);
-        }
-        TF.pushIslandSnapshot();
-        break;
-      }
-      case 'open-task': if (TF.openTask) TF.openTask(action.id); break;
-      case 'open-main': try { window.focus(); } catch (e) { } break;
-      case 'toggle-focus': if (TF.pomoStart) TF.pomoStart(); break;
-      case 'start-focus':
-        if (action.id && TF.openTask) TF.openTask(action.id);
-        if (TF.pomoStart && !(TF.Pomo && TF.Pomo.running)) TF.pomoStart();
-        break;
-      case 'open-settings': TF.openSettings('island'); break;
-      case 'toggle-m3': {
-        const m = S().data.settings.m3;
-        m.enabled = !m.enabled;
-        S().save();
-        TF.applyM3Settings();
-        if (TF.Settings && TF.Settings.open) TF.renderSettingsIfOpen();
-        break;
-      }
-      case 'dismiss-reminder':
-        if (window.tfBridge && window.tfBridge.topIsland) window.tfBridge.topIsland.dismiss(action.id);
-        break;
-    }
-  };
-
   /* ================= 启动 ================= */
   const t0 = performance.now();
   S().load();
   const tLoad = performance.now();
-  // 到点提醒：岛开启时由岛接管（旧右上角卡片不再出现）；关闭时回退旧卡
+  // 到点提醒：回到 v1.12 常规方式（应用内提醒卡 + 系统通知），按 notifiedOn 去重
   setInterval(function () {
     const d = S().data, now = new Date(), t = TF.today();
     const due = [];
@@ -1791,24 +1637,10 @@
 
     // 同一次检测只 beep 一次
     TF.beep();
-    /* 提醒归属（03 §6）：top = 顶部优先；bottom = 底部优先；follow-focus = 主窗有没有焦点 */
-    const m3cfg = S().data.settings.m3 || {};
-    const owner = m3cfg.reminderOwner || 'top';
-    const topReady = !!(m3cfg.enabled && window.tfBridge && window.tfBridge.topIsland);
-    const useTop = topReady && (owner === 'top' || (owner === 'follow-focus' && !document.hasFocus()));
-    const useIsland = !useTop
-      && S().data.settings.island && S().data.settings.island.enabled !== false
-      && typeof TF.islandRemind === 'function';
     due.forEach(tk => {
-      tk.notifiedOn = t;                       // 提醒标记由 app 侧写入，islandRemind 不写
+      tk.notifiedOn = t;
       S().save();
-      if (useTop) {
-        try { window.tfBridge.topIsland.remind(tk); } catch (e) { }
-        TF.pushIslandSnapshot();
-        return;
-      }
-      const took = useIsland ? TF.islandRemind(tk) : false;
-      if (!took) TF.reminderPopup(tk);         // 岛未接管 → 旧卡
+      TF.reminderPopup(tk);
     });
 
     if (document.hidden && window.Notification && Notification.permission === 'granted') {
@@ -1832,24 +1664,7 @@
   })();
   applyTheme();
   App.render();
-  if (typeof TF.islandRender === 'function') TF.islandRender();
   initEffects();
-  /* M3 顶部岛：注册动作回调 + 按设置开合（无桥则完全跳过） */
-  if (window.tfBridge && window.tfBridge.topIsland) {
-    try { if (window.tfBridge.topIsland.onAction) window.tfBridge.topIsland.onAction(TF.onIslandAction); } catch (e) { }
-    try {
-      if (window.tfBridge.topIsland.onStatus) window.tfBridge.topIsland.onStatus(s => {
-        if (s && (s.type === 'closed' || s.type === 'destroyed')) TF.toast('顶部岛已关闭', 'warn');
-        App.renderStatusbar();
-      });
-    } catch (e) { }
-    try {
-      if (S().data.settings.m3 && S().data.settings.m3.enabled) {
-        window.tfBridge.topIsland.configure(S().data.settings.m3);
-        TF.pushIslandSnapshot();
-      }
-    } catch (e) { }
-  }
   TF.timing = {
     load: Math.round(tLoad - t0),
     render: Math.round(performance.now() - tLoad),
@@ -1859,7 +1674,6 @@
   window.addEventListener('beforeunload', () => S().flush());
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) S().flush();
-    else if (typeof TF.islandRefresh === 'function') TF.islandRefresh();
   });
   setInterval(TF.pomoTick, 400);
   /* 状态栏专注计时每秒刷新；只在运行时重绘，避免空转 */

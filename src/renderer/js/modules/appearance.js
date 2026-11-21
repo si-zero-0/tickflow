@@ -214,7 +214,6 @@
     try {
       document.dispatchEvent(new CustomEvent('tf:appearance', { detail: s.appearance }));
     } catch (e) { }
-    if (typeof TF.pushIslandSnapshot === 'function') TF.pushIslandSnapshot();
     return s.appearance;
   };
 

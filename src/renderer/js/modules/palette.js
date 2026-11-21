@@ -42,13 +42,6 @@
         { k: 'cmd', t: '打开愿望', i: 'spark', run: () => { TF.closePalette(); TF.App.view = { type: 'wishes' }; TF.App.group = 'none'; TF.App.filter = 'all'; TF.App.render(); } },
         { k: 'cmd', t: '新建愿望', i: 'plus', run: () => { TF.closePalette(); if (TF.App.view.type !== 'wishes') { TF.App.view = { type: 'wishes' }; TF.App.render(); } setTimeout(() => TF.openWish(null), 60); } },
         { k: 'cmd', t: '切换外观（6 套主题）', i: 'palette', run: () => { TF.closePalette(); TF.cycleTheme(); } },
-        { k: 'cmd', t: '显示/隐藏灵动岛', h: 'Ctrl+Alt+I', i: 'bolt', run: () => {
-          TF.closePalette();
-          if (!TF.setIslandSetting) return;
-          const s = TF.Store.data.settings;
-          const on = !(s.island && s.island.enabled !== false);
-          TF.setIslandSetting('enabled', on);
-        } },
         { k: 'cmd', t: '切换密度（标准 / 紧凑）', i: 'grid', run: () => { TF.closePalette(); TF.cycleDensity(); } },
         { k: 'cmd', t: '导入 / 导出数据', i: 'download', run: () => { TF.closePalette(); document.querySelector('[data-act="settings"]').click(); } },
         { k: 'cmd', t: '切换本地配置', i: 'folder', run: () => { TF.closePalette(); TF.openProfileMenu(); } }

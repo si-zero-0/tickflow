@@ -7,6 +7,7 @@ const api = {
   info: () => ipcRenderer.invoke('tf:app:info'),
   plugins: () => ipcRenderer.invoke('tf:plugins:list'),
   openDataDir: () => ipcRenderer.invoke('tf:shell:open-data-dir'),
+  openExternal: (url) => ipcRenderer.invoke('tf:shell:open-external', String(url || '')),
   onCommand(handler) {
     if (typeof handler !== 'function') return () => {};
     const listener = (_event, command, payload) => handler(command, payload);
@@ -25,25 +26,6 @@ const api = {
       const listener = (_event, status) => handler(status);
       ipcRenderer.on('tf:update:status', listener);
       return () => ipcRenderer.removeListener('tf:update:status', listener);
-    }
-  },
-  /* M3 顶部岛：主窗单向推送快照/提醒；动作由主进程回推到主窗 */
-  topIsland: {
-    configure: (cfg) => ipcRenderer.invoke('tf:top-island:configure', cfg),
-    snapshot: (snap) => ipcRenderer.send('tf:top-island:snapshot', snap),
-    remind: (task) => ipcRenderer.send('tf:top-island:remind', task),
-    dismiss: (id) => ipcRenderer.send('tf:top-island:dismiss', id),
-    onAction(handler) {
-      if (typeof handler !== 'function') return () => {};
-      const listener = (_event, action) => handler(action);
-      ipcRenderer.on('tf:island:action', listener);
-      return () => ipcRenderer.removeListener('tf:island:action', listener);
-    },
-    onStatus(handler) {
-      if (typeof handler !== 'function') return () => {};
-      const listener = (_event, status) => handler(status);
-      ipcRenderer.on('tf:island:status', listener);
-      return () => ipcRenderer.removeListener('tf:island:status', listener);
     }
   }
 };

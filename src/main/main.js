@@ -2,7 +2,6 @@ const { app, BrowserWindow, protocol, net, Menu, shell, globalShortcut, Tray, na
 const path = require('path');
 const fs = require('fs');
 const ipc = require('./ipc');
-const topIsland = require('./ipc/top-island');
 const update = require('./ipc/update');
 
 const APP_DIR = path.join(__dirname, 'www');
@@ -206,10 +205,7 @@ function createWindow() {
               text:getComputedStyle(document.documentElement).getPropertyValue('--text').trim()});
           })()`);
           else if (scene === 'light') sceneResult = await win.webContents.executeJavaScript("TF.applyAppearance({mode:'light'}); document.documentElement.dataset.mode + ':' + getComputedStyle(document.documentElement).getPropertyValue('--bg')");
-          else if (scene === 'island') sceneResult = await win.webContents.executeJavaScript("TF.App.view={type:'quadrants'};TF.App.render(); 'ok'");
-          else if (scene === 'm3') sceneResult = await win.webContents.executeJavaScript("TF.Store.data.settings.m3.enabled=true;TF.Store.save();TF.applyM3Settings(); 'm3-on:'+document.documentElement.dataset.scheme");
-          else if (scene === 'm3-remind') sceneResult = await win.webContents.executeJavaScript("TF.Store.data.settings.m3.enabled=true;TF.Store.save();TF.applyM3Settings(); setTimeout(()=>window.tfBridge.topIsland.remind({id:'rem1',title:'周会材料',due:'2026-11-20',dueTime:'15:00'}),700); 'm3-remind'");
-          else if (scene === 'm3-off') sceneResult = await win.webContents.executeJavaScript("TF.Store.data.settings.m3.enabled=true;TF.applyM3Settings(); setTimeout(()=>{TF.Store.data.settings.m3.enabled=false;TF.Store.save();TF.applyM3Settings();},600); 'm3-off'");
+
           else if (scene === 'views') sceneResult = await win.webContents.executeJavaScript(`(async()=>{
             const list=['inbox','today','next7','all','completed','timeline','calendar','quadrants','habits','stats','process','wishes','pomodoro','inbox'];
             const out=[];
@@ -250,22 +246,12 @@ function createWindow() {
             await new Promise(r => setTimeout(r, 200));
             sceneResult = await win.webContents.executeJavaScript("TF.Store.data.settings.appearance.mode='system';TF.Store.save();TF.applyAppearance(); 'sys='+document.documentElement.dataset.mode+' bg='+getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()");
           }
-          else if (scene === 'm3-dedupe') {
-            await win.webContents.executeJavaScript("TF.Store.data.settings.m3.enabled=true;TF.Store.save();TF.applyM3Settings(); 'on'");
-            await new Promise(r => setTimeout(r, 800));
-            await win.webContents.executeJavaScript("window.tfBridge.topIsland.remind({id:'dup',title:'重复提醒',due:'2026-11-20',dueTime:'10:00'})");
-            await new Promise(r => setTimeout(r, 250));
-            await win.webContents.executeJavaScript("window.tfBridge.topIsland.remind({id:'dup',title:'重复提醒',due:'2026-11-20',dueTime:'10:00'})");
-            await new Promise(r => setTimeout(r, 400));
-            const isl0 = BrowserWindow.getAllWindows().find(w => !w.isDestroyed() && /顶部岛/.test(w.getTitle()));
-            sceneResult = isl0 ? await isl0.webContents.executeJavaScript("'dup-count='+document.querySelectorAll('.isl-rem[data-id=\"dup\"]').length+' total='+document.querySelectorAll('.isl-rem').length") : 'island-missing';
-          }
           else if (scene === 'perf') sceneResult = await win.webContents.executeJavaScript(`(()=>{
             const out=[]; const list=['today','inbox','all','completed','next7','timeline','calendar','quadrants','habits','stats','process','wishes','pomodoro'];
             for (const v of list){ const t0=performance.now(); TF.App.view={type:v}; TF.App.render(); out.push(v+'='+Math.round((performance.now()-t0)*10)/10); }
             TF.App.view={type:'today'}; TF.App.render();
             return out.join(' ');})()`);
-          else if (scene === 'reset') sceneResult = await win.webContents.executeJavaScript("TF.applyAppearance({fontSize:82,contentWidth:896,mode:'dark',scheme:'kun-default',accentOverride:null}); TF.Store.data.settings.m3.enabled=false; TF.Store.save(true); TF.applyM3Settings(); 'reset'");
+          else if (scene === 'reset') sceneResult = await win.webContents.executeJavaScript("TF.applyAppearance({fontSize:82,contentWidth:896,mode:'dark',scheme:'kun-default',accentOverride:null}); TF.Store.save(true); 'reset'");
           else if (scene === 'ls-write') sceneResult = await win.webContents.executeJavaScript("localStorage.setItem('tf:qa','yes-'+Date.now()); 'wrote keys='+Object.keys(localStorage).length");
           else if (scene === 'ls-read') sceneResult = await win.webContents.executeJavaScript("'qa='+localStorage.getItem('tf:qa')+' keys='+Object.keys(localStorage).join(',')");
           else if (scene.startsWith('view:')) {
@@ -291,7 +277,7 @@ function createWindow() {
           );
         } catch (err) { probe = { error: String(err) }; }
         /* 冒烟截图：TF_SMOKE_SIZE=1060x700 / 1400x900 / 3840x2160 各出一张；
-           TF_SMOKE_SCENE=settings|light|island 可切到指定场景再截图 */
+           TF_SMOKE_SCENE=settings|light 可切到指定场景再截图 */
         let shot = '';
         try {
           const size = String(process.env.TF_SMOKE_SIZE || '1400x900').split('x').map(Number);
@@ -301,38 +287,6 @@ function createWindow() {
           const scene = String(process.env.TF_SMOKE_SCENE || 'main').replace(/[\\/:*?"<>|]/g, '-');
           shot = path.join(app.getPath('temp'), `tickflow-smoke-${scene}-${size[0]}x${size[1]}.png`);
           fs.writeFileSync(shot, img.toPNG());
-          /* M3 场景额外截取顶部岛独立窗口（透明 PNG） */
-          if (String(process.env.TF_SMOKE_SCENE || '').startsWith('m3')) {
-            const isl = BrowserWindow.getAllWindows().find(w => !w.isDestroyed() && /顶部岛/.test(w.getTitle()));
-            if (isl) {
-              sceneResult += ` focusable=${typeof isl.isFocusable === 'function' ? isl.isFocusable() : 'n/a'} onTop=${isl.isAlwaysOnTop()} bounds=${JSON.stringify(isl.getBounds())}`;
-              await new Promise(r => setTimeout(r, 500));
-              /* 展开三态中的「展开」：模拟点击胶囊 */
-              /* 提醒场景已自动展开，不要再点（否则会切回收起态）；普通 m3 场景点一下展开 */
-              if (String(process.env.TF_SMOKE_SCENE || '') === 'm3' && !process.env.TF_SMOKE_IDLE) {
-                try { await isl.webContents.executeJavaScript("document.querySelector('.isl-head').dispatchEvent(new MouseEvent('click',{bubbles:true})); 'ok'"); } catch (e) { }
-                await new Promise(r => setTimeout(r, 400));
-              }
-              /* 展开/提醒态下的窗口高度：三态测量用 */
-              sceneResult += ' boundsAfter=' + JSON.stringify(isl.getBounds());
-              try { sceneResult += ' dbg=' + await isl.webContents.executeJavaScript("JSON.stringify(window.__dbg && window.__dbg())"); } catch (e) { }
-              /* 同步延迟实测：岛发起动作 → 主窗执行 → 快照回岛，测 5 次 */
-              try {
-                for (let i = 0; i < 5; i++) {
-                  await isl.webContents.executeJavaScript("window.__act && window.__act('toggle-focus')");
-                  await new Promise(r => setTimeout(r, 120));
-                }
-                await new Promise(r => setTimeout(r, 300));
-                const stats = await isl.webContents.executeJavaScript("JSON.stringify(window.__syncStats)");
-                sceneResult += ' ' + stats;
-              } catch (e) { sceneResult += ' sync-failed:' + String(e); }
-              await new Promise(r => setTimeout(r, 300));
-              const shot2 = path.join(app.getPath('temp'), 'tickflow-smoke-m3-island.png');
-              fs.writeFileSync(shot2, (await isl.capturePage()).toPNG());
-            } else {
-              sceneResult += ' island-window-missing';
-            }
-          }
         } catch (err) { shot = 'shot-failed: ' + String(err); }
         fs.writeFileSync(path.join(app.getPath('temp'), 'tickflow-smoke.json'),
           JSON.stringify({ url: win.webContents.getURL(), sceneResult, probe, consoleErrors: log, shot }, null, 2));
@@ -369,15 +323,6 @@ function buildTray() {
   const menu = Menu.buildFromTemplate([
     { label: '打开刻度', click: () => { win.show(); win.focus(); } },
     { label: '快速捕获（Ctrl+Alt+Space）', click: capture },
-    {
-      label: '顶部迷你岛',
-      type: 'checkbox',
-      checked: !!(topIsland.getState && topIsland.getState().enabled),
-      click: () => {
-        /* 托盘只发动作，真正改 Store 由主窗完成（主窗是唯一事实源） */
-        if (win && !win.isDestroyed()) win.webContents.send('tf:island:action', { type: 'toggle-m3' });
-      }
-    },
     { type: 'separator' },
     { label: '退出', click: () => { quitting = true; app.quit(); } }
   ]);
@@ -402,7 +347,6 @@ app.whenReady().then(() => {
   ipc.register();
   Menu.setApplicationMenu(null);
   createWindow();
-  topIsland.attachHost(win);
   update.init({ beforeInstall: () => { quitting = true; } });
   if (!SMOKE) { buildTray(); registerShortcut(); update.startAutoCheck(); }
   app.on('activate', () => {

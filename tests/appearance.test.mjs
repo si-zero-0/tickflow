@@ -130,5 +130,6 @@ test('v1.12 → v1.13 迁移：theme/accent 推导 appearance，旧字段保留'
   assert.equal(d.settings.appearance.accentOverride, '#FF5F7A');
   assert.equal(d.settings.theme, 'night');       // 旧字段保留一年，便于回滚
   assert.equal(d.settings.accent, 'rose');
-  assert.equal(d.settings.m3.enabled, false);   // 顶部岛默认关闭
+  assert.equal(d.settings.island, undefined);    // 灵动岛移除后旧字段丢弃
+  assert.equal(d.settings.m3, undefined);
 });

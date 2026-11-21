@@ -57,14 +57,8 @@ for (const dir of ['css', 'js', 'assets', 'data']) {
   const src = path.join(RENDERER, dir);
   if (fs.existsSync(src)) copyDir(src, path.join(STAGE, 'www', dir));
 }
-/* M3：顶部岛是独立 html（不经过主窗 index.html），需单独复制 */
-const islandHtml = path.join(RENDERER, 'top-island.html');
-if (fs.existsSync(islandHtml)) fs.copyFileSync(islandHtml, path.join(STAGE, 'www', 'top-island.html'));
-
 fs.copyFileSync(path.join(MAIN, 'main.js'), path.join(STAGE, 'main.js'));
 fs.copyFileSync(path.join(MAIN, 'preload.js'), path.join(STAGE, 'preload.js'));
-const islandPreload = path.join(MAIN, 'preload-island.js');
-if (fs.existsSync(islandPreload)) fs.copyFileSync(islandPreload, path.join(STAGE, 'preload-island.js'));
 fs.copyFileSync(path.join(MAIN, 'package.json'), path.join(STAGE, 'package.json'));
 /* 更新源集中配置：owner/repo 只改 src/main/update-config.json，stage 一起带上 */
 const updateConfig = path.join(MAIN, 'update-config.json');

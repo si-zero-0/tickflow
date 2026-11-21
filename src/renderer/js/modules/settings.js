@@ -2,7 +2,6 @@
    职责：
    - 打开/关闭 #settings-view；切分类只替换右栏内容（保留滚动位置）；
    - 外观页（3 主题卡 + 9 配色卡 + 字号/宽度 + 强调色 + 特效 + 自定义）；
-   - 灵动岛页（底部岛 + 顶部岛 + 归属）；
    - 数据页复用 v1.12 的导入/导出/快照能力（app.js 已有的 data-act）。
    所有修改即时生效并写入 Store，不设“保存”按钮。
 */
@@ -15,7 +14,6 @@
     { id: 'appearance', name: '外观', icon: 'palette', tone: 'set' },
     { id: 'notify', name: '通知', icon: 'alert', tone: 'tool' },
     { id: 'shortcut', name: '快捷键', icon: 'bolt', tone: 'work' },
-    { id: 'island', name: '灵动岛', icon: 'timer', tone: 'view' },
     { id: 'wishes', name: '愿望', icon: 'spark', tone: 'wish' },
     { id: 'data', name: '数据', icon: 'layers', tone: 'view' },
     { id: 'about', name: '关于', icon: 'file', tone: 'help' }
@@ -30,7 +28,6 @@
 
   function st() { return S().data.settings; }
   function ap() { return st().appearance; }
-  function m3() { return st().m3; }
 
   /* ---------- 更新状态（只在内存里，不写 Store） ---------- */
   const UPD = { phase: 'idle', message: '尚未检查更新', version: '', notes: '', progress: 0, code: '' };
@@ -215,7 +212,6 @@
     return card('通知', '提醒都来自本地任务，不上传任何数据', `
         ${row('系统通知', (window.Notification && Notification.permission === 'granted') ? '已授权' : '未授权时只在应用内提醒',
           `<button class="btn sm" data-act="ask-notify">${(window.Notification && Notification.permission === 'granted') ? '已开启' : '开启系统通知'}</button>`)}
-        ${row('到点自动展开', '关闭后只在胶囊上亮状态点', sw(s.island.autoExpand, 'island-auto'))}
         ${row('免打扰', '关闭后到点不响铃', `<span class="set-val">跟随系统专注模式</span>`)}
       `);
   }
@@ -226,38 +222,10 @@
       ['Ctrl + K', '命令面板'],
       ['/', '聚焦搜索框'],
       ['Ctrl + Alt + Space', '全局快速捕获'],
-      ['Ctrl + Alt + I', '开合底部灵动岛'],
       ['Esc', '关闭抽屉 / 弹窗 / 面板'],
       ['F11', '切换全屏']
     ];
     return card('快捷键', '固定快捷键，暂不支持自定义', `<div class="key-list">${list.map(([k, v]) => `<div><kbd>${k}</kbd><span>${v}</span></div>`).join('')}</div>`);
-  }
-
-  function bodyIsland() {
-    const s = st(), m = m3();
-    const topReady = !!(window.tfBridge && window.tfBridge.topIsland);
-    return card('底部主岛', '窗口底部的当前任务胶囊', `
-        ${row('启用底部岛', '关闭后回退到右上角提醒卡', sw(s.island.enabled, 'island'))}
-        ${row('到点自动展开', '关闭后到点只亮状态点', sw(s.island.autoExpand, 'island-auto'))}
-      `) + card('顶部迷你岛', topReady ? '独立透明置顶窗口；默认关闭' : '当前环境不支持顶部岛（浏览器预览）', `
-        ${row('启用顶部岛', '开启后以刘海样式贴在屏幕顶边', sw(m.enabled, 'm3-enabled'))}
-        ${row('位置', 'P0 固定顶部居中', `<span class="set-val">顶部居中</span>`)}
-        ${row('宽度', `${m.width}px`, `<input type="range" min="280" max="640" step="20" value="${m.width}" data-sact="m3" data-k="width">`)}
-        ${row('透明度', `${Math.round(m.opacity * 100)}%`, `<input type="range" min="60" max="100" step="1" value="${Math.round(m.opacity * 100)}" data-sact="m3-opacity">`)}
-        ${row('圆角', `${m.radius}px`, `<input type="range" min="8" max="40" step="1" value="${m.radius}" data-sact="m3" data-k="radius">`)}
-        ${row('顶部偏移', m.offsetY ? `${m.offsetY}px` : '0px（贴顶）', `<input type="range" min="0" max="120" step="2" value="${m.offsetY}" data-sact="m3" data-k="offsetY">`)}
-      `) + card('内容与提醒', '', `
-        ${row('显示当前任务', '', sw(m.content.task, 'm3-task'))}
-        ${row('显示今日计数', '', sw(m.content.count, 'm3-count'))}
-        ${row('显示倒计时', '', sw(m.content.countdown, 'm3-countdown'))}
-        ${row('显示提醒条数', '', sw(m.content.reminders, 'm3-reminders'))}
-        ${row('显示专注状态', '', sw(m.content.focus, 'm3-focus'))}
-        ${row('提醒归属', '同一条任务只在一端弹出', `<div class="seg" id="set-owner">
-          <button data-sact="m3-owner" data-v="top" class="${m.reminderOwner === 'top' ? 'on' : ''}">顶部优先</button>
-          <button data-sact="m3-owner" data-v="bottom" class="${m.reminderOwner === 'bottom' ? 'on' : ''}">底部优先</button>
-          <button data-sact="m3-owner" data-v="follow-focus" class="${m.reminderOwner === 'follow-focus' ? 'on' : ''}">跟随焦点</button>
-        </div>`)}
-      `);
   }
 
   function bodyWishes() {
@@ -293,6 +261,11 @@
         <div class="ab-line">开发者：<b>硅基零号机</b></div>
         <div class="ab-line">本地优先：无账号、无云端、无内购，所有功能免费。</div>
         <div class="ab-line">数据只存在本机（Electron 用户数据目录）。换设备或重置前请先导出 JSON 备份。</div>
+        <div class="ab-line">反馈：B 站是主要入口，GitHub Issues 作为另一条渠道。</div>
+        <div class="btn-row">
+          <button class="btn sm" data-sact="open-link" data-url="https://space.bilibili.com/1138070117">B 站反馈</button>
+          <button class="btn sm ghost" data-sact="open-link" data-url="https://github.com/si-zero-0/tickflow/issues">GitHub Issues</button>
+        </div>
       </div>`) + card('更新', '整包更新；下载后校验 SHA256，失败不会影响当前版本', `
         ${row('当前版本', '安装包来自 GitHub Releases', `<span class="set-val">v${TF.VERSION}</span>`)}
         ${row('状态', u ? '清单 jsDelivr → raw → GitHub API' : '浏览器预览不支持自动更新',
@@ -301,13 +274,12 @@
       `) + card('诊断', '用于排查启动与性能问题', `
         ${row('启动耗时', 'load / render / total (ms)', `<span class="set-val">${t.load || 0} / ${t.render || 0} / ${t.total || 0}</span>`)}
         ${row('渲染进程', 'Electron', `<span class="set-val">${/Electron/i.test(navigator.userAgent) ? 'Electron' : '浏览器预览'}</span>`)}
-        ${row('顶部岛', 'tfBridge.topIsland', `<span class="set-val">${(window.tfBridge && window.tfBridge.topIsland) ? '可用' : '不可用'}</span>`)}
       `);
   }
 
   const BODIES = {
     general: bodyGeneral, appearance: bodyAppearance, notify: bodyNotify, shortcut: bodyShortcut,
-    island: bodyIsland, wishes: bodyWishes, data: bodyData, about: bodyAbout
+    wishes: bodyWishes, data: bodyData, about: bodyAbout
   };
 
   /* ---------- 壳 ---------- */
@@ -412,8 +384,7 @@
       general: ['常规', '密度', '语言', '配置', '专注'],
       appearance: ['外观', '主题', '配色', '字号', '宽度', '强调', '特效', '涟漪', '高光'],
       notify: ['通知', '提醒', '声音', '免打扰'],
-      shortcut: ['快捷键', '捕获', '命令', '岛'],
-      island: ['灵动岛', '顶部', '底部', '提醒归属'],
+      shortcut: ['快捷键', '捕获', '命令'],
       wishes: ['愿望', '实现'],
       data: ['数据', '导入', '导出', '快照', '重置'],
       about: ['关于', '版本', '诊断', '许可', '更新', '检查']
@@ -426,7 +397,6 @@
   function applyAp(patch) {
     TF.applyAppearance(patch, { anim: true });
     if (TF.App && TF.App.renderStatusbar) TF.App.renderStatusbar();
-    if (typeof TF.pushIslandSnapshot === 'function') TF.pushIslandSnapshot();
   }
 
   function bindInline() {
@@ -476,16 +446,8 @@
         const patch = {};
         if (k === 'highlight') patch.highlight = !ap().highlight;
 
-        else if (k === 'island') { st().island.enabled = !st().island.enabled; S().save(); if (TF.islandRender) TF.islandRender(); }
-        else if (k === 'island-auto') { st().island.autoExpand = !st().island.autoExpand; S().save(); }
-        else if (k === 'm3-enabled') { st().m3.enabled = !st().m3.enabled; S().save(); if (TF.applyM3Settings) TF.applyM3Settings(); }
-        else if (k.startsWith('m3-')) {
-          const ck = { 'm3-task': 'task', 'm3-count': 'count', 'm3-countdown': 'countdown', 'm3-reminders': 'reminders', 'm3-focus': 'focus' }[k];
-          if (ck) { st().m3.content[ck] = !st().m3.content[ck]; S().save(); if (TF.applyM3Settings) TF.applyM3Settings(); }
-        }
         if (Object.keys(patch).length) applyAp(patch);
         renderBody();
-        if (k.startsWith('m3')) { if (TF.pushIslandSnapshot) TF.pushIslandSnapshot(); }
         break;
       }
       case 'font-step': {
@@ -514,35 +476,19 @@
         S().save(); TF.applyTheme(); renderBody();
         break;
       }
-      case 'm3': {
-        const k = el.dataset.k;
-        st().m3[k] = Number(el.value);
-        S().save();
-        if (TF.applyM3Settings) TF.applyM3Settings();
-        const lab = el.closest('.set-row');
-        if (lab) { const t = lab.querySelector('.set-val'); if (t) t.textContent = el.value + (k === 'width' || k === 'radius' || k === 'offsetY' ? 'px' : ''); }
-        break;
-      }
-      case 'm3-opacity': {
-        st().m3.opacity = Number(el.value) / 100;
-        S().save();
-        if (TF.applyM3Settings) TF.applyM3Settings();
-        const lab = el.closest('.set-row');
-        if (lab) { const t = lab.querySelector('.set-val'); if (t) t.textContent = el.value + '%'; }
-        break;
-      }
-      case 'm3-owner': {
-        st().m3.reminderOwner = el.dataset.v;
-        S().save();
-        document.querySelectorAll('#set-owner button').forEach(b => b.classList.toggle('on', b.dataset.v === el.dataset.v));
-        break;
-      }
       case 'update-check': updateAction('check'); break;
       case 'update-download': updateAction('download'); break;
       case 'update-install': updateAction('install'); break;
       case 'update-open': {
         const u = updb();
         if (u) u.openReleasePage();
+        break;
+      }
+      case 'open-link': {
+        const url = String(el.dataset.url || '');
+        const b = window.tfBridge;
+        if (b && b.shell && b.shell.openExternal) b.shell.openExternal(url);
+        else if (url) window.open(url, '_blank', 'noopener');
         break;
       }
     }

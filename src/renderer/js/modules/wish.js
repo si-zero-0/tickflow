@@ -328,7 +328,6 @@
     box.classList.add('open');
     box.setAttribute('aria-hidden', 'false');
     TF.scrim(true);
-    if (typeof TF.islandUnderScrim === 'function') TF.islandUnderScrim(true);
     box.innerHTML = drawerHTML(w);
     bindDrawer(w);
   };

@@ -1,58 +1,150 @@
-# 刻度 TickFlow · 开发副本
+# TickFlow（刻度）
 
-Windows 本地任务 + 进程管理工具。纯前端（无框架、无构建步骤）+ Electron 壳，本机数据存储，无账号无联网。
+Windows 本地任务与进程管理工具。把「今天要做什么、做到哪一步、时间花在哪」放在一个窗口里。
 
-- 本机状态：**已卸载**（2026-11-17，暂不使用）；分发物与运行时存档都在本目录 `artifacts/`
-- 本文档是**开发工作副本**，源码事实源在这里；机器上 TickFlow 相关物**只允许**出现在本目录。
+本地优先：不需要账号，不连接云端，没有内购；任务、愿望、专注记录只存在你自己的电脑上。
 
-## 目录
+![TickFlow 主界面](reference/images/02-main-shell.png)
 
-```
-src/main/        Electron 主进程 + preload + ipc + 构建配置 + node_modules
-src/renderer/    前端：index.html + css/ + js/core/ + js/modules/ + assets/
-plugins/         插件（_ 开头不加载）
-scripts/         build.mjs（唯一打包入口）、verify.mjs（静态自检）
-tests/           注册表单测（node --test）
-docs/            PLUGIN-API.md 插件契约、DECISIONS.md 决策记录
-artifacts/       分发物 dist/ + 运行时存档 userdata-20261117/（见其 README）
-build/           产物：dist（未打包）、release（Setup.exe），只留最新一份
-```
+## 它解决什么问题
 
-## 首次恢复（clone 下来或换机后）
+- 待办散在聊天、便签、邮件里，今天该做什么看不清。
+- 事情有先后和依赖，普通清单排不出顺序。
+- 想记录「这件事是怎么一步步做成的」，而不是只留一个完成勾。
+- 专注计时、任务、统计分散在几个工具里，来回切换。
 
-```bash
-cd src/main
-npm i                     # electron / @electron/packager / electron-builder
-npm i --package-lock-only # 生成锁文件，务必提交；否则版本会漂
-npm start                 # 起 Electron 壳（带托盘、全局快捷键）
-```
+适合这些人：每天有 5 条以上待办、需要拆步骤和排顺序、希望数据留在本机、不喜欢被账号和订阅打扰的 Windows 用户。
 
-只想看前端：直接双击 `src/renderer/index.html`（缺托盘与快捷键，其余一致）。
+## 当前版本
 
-## 常用
+- 版本：**1.13.1**，Windows 10 / 11 64 位，正式可用。
+- 安装包未做代码签名，首次运行会出现 SmartScreen 提示，按下面的步骤继续即可。
 
-| 命令 | 作用 |
+## 下载与安装
+
+1. 打开 [Releases](https://github.com/si-zero-0/tickflow/releases/latest)。
+2. 下载 `TickFlow-Setup-1.13.1.exe`（文件名以最新 Release 为准）。
+3. 双击安装。默认装到 `%LOCALAPPDATA%\Programs\TickFlow`，不需要管理员权限，可以改安装目录。
+4. 如果出现「Windows 已保护你的电脑」：
+   - 点「更多信息」；
+   - 点「仍要运行」。
+   
+   这是因为安装包暂未购买代码签名证书，不是病毒提示。
+
+安装完成后，开始菜单和桌面会有 TickFlow 快捷方式。
+
+## 三步上手
+
+**第一步：下载安装。** 同上，双击 `TickFlow-Setup-<版本>.exe`。
+
+**第二步：打开后先做一件事。** 在「今天」页底部输入框写一条待办，回车即可。想拆步骤就到「进程」页；想计时就到「番茄钟」页。
+
+**第三步：知道数据在哪、怎么卸载。**
+- 数据在 `%APPDATA%\TickFlow`。也可以在「设置 → 数据 → 打开数据目录」直接打开。
+- 卸载：Windows 设置 → 应用 → 已安装的应用 → TickFlow → 卸载。
+- 卸载默认**保留**数据；确认不再使用后，手动删除 `%APPDATA%\TickFlow` 即可。
+
+## 第一次打开会看到什么
+
+- 左侧栏：工作台、视图、工具、清单四个分组，共 12 个视图。
+- 中间：今天页的英雄区、快速输入框和任务列表。
+- 右侧：当前专注、愿望和今日统计。
+- 底部状态栏：待办数量、专注状态和版本。
+- 首次启动会带几条示例任务，可以直接删掉，也可以拿来熟悉操作。
+
+不需要登录，也没有引导弹窗。
+
+## 常用操作
+
+| 想做什么 | 怎么做 |
 |---|---|
-| `npm --prefix src/main start` | 开发启动 |
-| `node scripts/build.mjs --stage-only` | 只同步 stage，秒级自检 |
-| `node scripts/build.mjs` | 出包 → `build/release/刻度-TickFlow-Setup-<ver>.exe` |
-| `node scripts/verify.mjs` | 引用 / 语法 / 脚本顺序 / manifest / 产物污染 / 版本漂移 |
+| 快速记一条待办 | 今天页底部输入框，回车 |
+| 在别的软件里快速记录 | `Ctrl + Alt + Space` 打开快速捕获 |
+| 切换视图 | 左侧栏「视图」分组，或命令面板 |
+| 搜索任务 | 顶栏搜索框，或命令面板 |
+| 开始专注 | 番茄钟页，或右侧栏的专注入口 |
+| 记录愿望 | 左侧栏「愿望」 |
+| 调整字号 / 配色 | 设置 → 外观 |
+| 检查更新 | 设置 → 关于 → 更新 → 检查更新 |
 
-**不要跑 `npm run build` 那个旧别名以外的方式**——`src/main/package.json` 的 `build` 已指向 `scripts/build.mjs`；历史文档里的 `electron-builder --win portable` 是废弃路径（33 秒启动）。
+常用快捷键：
 
-## 改代码前先读
+- `Ctrl + Alt + Space`：全局快速捕获
+- `Ctrl + K`：命令面板
+- `N`：新建任务（输入框内不触发）
+- `Esc`：关闭抽屉、弹窗或面板
 
-1. `ARCHITECTURE.md` — 五层边界、四条不可跨越的线、演进顺序
-2. `docs/PLUGIN-API.md` — 插件 manifest 与四个扩展点（`commands` 已接线）
-3. `src/renderer/DESIGN.md` — 颜色 / 字号 / 层次 / 动效 / 反模式
-4. `docs/DECISIONS.md` — 为什么零构建、为什么只出 NSIS
+## 数据、备份与卸载
 
-## 冒烟
+- 数据位置：`%APPDATA%\TickFlow`，任务、愿望、专注记录、设置都在这里。
+- 备份：设置 → 数据 → 导出 JSON；换电脑时在新机器导入。
+- 自动快照：应用会在本地保留最近几份快照，误操作后可在设置 → 数据里恢复。
+- 卸载不会删除数据；重装后数据仍在。
 
-```bash
-build/release/刻度-TickFlow-Setup-1.11.0.exe /S
-%LOCALAPPDATA%\Programs\TickFlow\TickFlow.exe --smoke
-type %TEMP%\tickflow-smoke.json     # consoleErrors 必须是 []
+## 更新
+
+- 打开「设置 → 关于 → 更新」，点「检查更新」。
+- 发现新版本后，点「下载并校验」；下载完成会校验 SHA256，再点「安装并重启」。
+- 应用启动后也会自动检查一次，之后每 24 小时检查一次。
+- 下载源依次尝试 GitHub、ghproxy 镜像；都失败时会提示打开发布页手动下载。
+- 更新失败不会影响当前版本，旧版本会保留。
+
+## 常见问题
+
+**SmartScreen 说未知发布者，能装吗？**
+能。安装包暂未签名，按「更多信息 → 仍要运行」继续。后续版本会考虑购买证书。
+
+**需要联网吗？**
+日常使用不需要。只有检查更新和下载安装包时会访问网络。
+
+**需要账号吗？**
+不需要。没有登录、云同步、支付。
+
+**数据会上传吗？**
+不会。数据只在本机。
+
+**更新下载失败怎么办？**
+在「设置 → 关于」打开发布页，手动下载最新安装包覆盖安装；数据不会丢。
+
+**卸载后数据还在吗？**
+在。需要彻底清理时手动删除 `%APPDATA%\TickFlow`。
+
+遇到问题先看上面的常见问题，仍未解决可在 B 站或 Issues 反馈。
+
+## 反馈
+
+- B 站（主要反馈入口）：[space.bilibili.com/1138070117](https://space.bilibili.com/1138070117)
+- GitHub Issues：[si-zero-0/tickflow/issues](https://github.com/si-zero-0/tickflow/issues)
+
+反馈时请说明：系统版本、TickFlow 版本、复现步骤；能附截图更好。
+
+## 开发
+
+<details>
+<summary>构建、目录结构与自检（开发者向）</summary>
+
+技术栈：Electron 主进程 + 原生 HTML/CSS/JS 渲染层，无前端框架、无构建器、无后端。
+
+```powershell
+# 安装依赖（首次）
+npm --prefix src/main i
+
+# 开发启动
+npm --prefix src/main start
+
+# 同步 stage 并启动
+npm run stage
+cd src/main
+npx electron stage
+
+# 自检与单测
+npm run verify
+npm test
+
+# 打安装包（产物在 build/release）
+npm run build
 ```
 
-冒烟前 `unset ELECTRON_RUN_AS_NODE`，否则 exe 会当 node 跑并报 `bad option: --smoke`。
+更完整的架构、目录、打包与发布说明见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
+
+</details>

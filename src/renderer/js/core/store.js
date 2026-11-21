@@ -51,23 +51,6 @@
   const FONT_RANGE = [70, 120];
   const WIDTH_RANGE = [640, 1200];
 
-  /* v1.13 M3 顶部岛（03-M3-DUAL-ISLAND §6；默认关闭） */
-  const M3_DEFAULTS = {
-    enabled: false,
-    position: 'top-center',
-    monitor: 'primary',
-    offsetX: 0,
-    offsetY: 8,
-    width: 360,
-    opacity: 1,
-    radius: 26,
-    content: { task: true, count: true, countdown: true, reminders: true, focus: true },
-    reminderOwner: 'top',
-    autoExpand: true,
-    hideOnFullscreen: true,
-    minimal: false
-  };
-
   /* v1.12 theme → v1.13 scheme/mode 映射（04 §6 / PRD §8.1） */
   const THEME_TO_SCHEME = {
     graphite: ['kun-default', 'dark'],
@@ -83,11 +66,9 @@
     accent: 'blue',
     density: 'normal',
     showDone: true,
-    island: { enabled: true, autoExpand: true },
     pomo: { work: 25, short: 5, long: 15, rounds: 4 },
     lastBackup: null,
-    appearance: APPEARANCE_DEFAULTS,
-    m3: M3_DEFAULTS
+    appearance: APPEARANCE_DEFAULTS
   };
 
   /* settings 每次都要全新对象：嵌套对象不得在 seed / blank / migrate 之间共享引用 */
@@ -97,11 +78,9 @@
       accent: DEFAULT_SETTINGS.accent,
       density: DEFAULT_SETTINGS.density,
       showDone: DEFAULT_SETTINGS.showDone,
-      island: { enabled: DEFAULT_SETTINGS.island.enabled, autoExpand: DEFAULT_SETTINGS.island.autoExpand },
       pomo: Object.assign({}, DEFAULT_SETTINGS.pomo),
       lastBackup: DEFAULT_SETTINGS.lastBackup,
-      appearance: cloneAppearance(),
-      m3: cloneM3()
+      appearance: cloneAppearance()
     };
   }
   function cloneAppearance() {
@@ -115,9 +94,7 @@
       custom: Object.assign({}, APPEARANCE_DEFAULTS.custom)
     };
   }
-  function cloneM3() {
-    return Object.assign({}, M3_DEFAULTS, { content: Object.assign({}, M3_DEFAULTS.content) });
-  }
+
   function clampNum(v, lo, hi, fb) {
     const n = Number(v);
     if (!Number.isFinite(n)) return fb;
@@ -144,32 +121,6 @@
       out.custom[k] = normHex(src.custom && src.custom[k], APPEARANCE_DEFAULTS.custom[k]);
     });
     return out;
-  }
-
-  /* m3 归一：默认关闭；数值范围钳制；归属枚举 */
-  function normM3(m) {
-    const src = Object.assign({}, cloneM3(), m || {});
-    return {
-      enabled: src.enabled === true,
-      position: src.position === 'top-center' ? 'top-center' : 'top-center',
-      monitor: src.monitor === 'cursor' ? 'cursor' : 'primary',
-      offsetX: clampNum(src.offsetX, -2000, 2000, 0),
-      offsetY: clampNum(src.offsetY, 0, 800, 8),
-      width: clampNum(src.width, 280, 640, 360),
-      opacity: clampNum((Number(src.opacity) || 1) * 100, 60, 100, 100) / 100,
-      radius: clampNum(src.radius, 8, 40, 26),
-      content: {
-        task: (src.content || {}).task !== false,
-        count: (src.content || {}).count !== false,
-        countdown: (src.content || {}).countdown !== false,
-        reminders: (src.content || {}).reminders !== false,
-        focus: (src.content || {}).focus !== false
-      },
-      reminderOwner: ['top', 'bottom', 'follow-focus'].indexOf(src.reminderOwner) >= 0 ? src.reminderOwner : 'top',
-      autoExpand: src.autoExpand !== false,
-      hideOnFullscreen: src.hideOnFullscreen !== false,
-      minimal: src.minimal === true
-    };
   }
 
 
@@ -543,10 +494,6 @@
       /* M2 强调色归一：六枚举直通；hex → 色相最近；缺失/非法 → blue */
       if (ACCENT_IDS.indexOf(s.accent) < 0) s.accent = IS_HEX.test(String(s.accent || '')) ? accentFromHex(s.accent) : 'blue';
 
-      /* M3 灵动岛开关补全（enabled/autoExpand 强制布尔） */
-      s.island = Object.assign({ enabled: true, autoExpand: true }, s.island || {});
-      s.island.enabled = !!s.island.enabled;
-      s.island.autoExpand = !!s.island.autoExpand;
 
       /* M4 密度只允许 normal / compact */
       s.density = s.density === 'compact' ? 'compact' : 'normal';
@@ -565,7 +512,10 @@
       } else {
         s.appearance = normAppearance(s.appearance);
       }
-      s.m3 = normM3(s.m3);
+      /* v1.13 灵动岛已整体移除：旧数据的 settings.island / settings.m3 直接丢弃，
+         不报错、不参与后续渲染，避免设置页残留无效入口 */
+      delete s.island;
+      delete s.m3;
 
       /* M5 愿望集合补全：缺失/非数组 → []，逐条补字段 + 修正枚举 */
       d.wishes = Array.isArray(d.wishes) ? d.wishes : [];

@@ -4,10 +4,9 @@
 const appInfo = require('./app');
 const plugins = require('./plugins');
 const shell = require('./shell');
-const topIsland = require('./top-island');
 const update = require('./update');
 
-const domains = [appInfo, plugins, shell, topIsland, update];
+const domains = [appInfo, plugins, shell, update];
 
 function register() {
   domains.forEach((domain) => {
