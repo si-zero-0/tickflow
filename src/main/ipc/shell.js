@@ -3,7 +3,9 @@ const { ipcMain, app, shell } = require('electron');
 
 const FEEDBACK_URLS = [
   'https://space.bilibili.com/1138070117',
-  'https://github.com/si-zero-0/tickflow/issues'
+  'https://github.com/si-zero-0/tickflow',
+  'https://github.com/si-zero-0/tickflow/issues',
+  'https://github.com/si-zero-0/tickflow/releases/latest'
 ];
 
 module.exports = {

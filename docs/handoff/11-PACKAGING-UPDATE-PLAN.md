@@ -96,8 +96,8 @@
     "size": 0,
     "sha256": "…",
     "urls": [
-      "https://github.com/OWNER/REPO/releases/download/v1.13.1/TickFlow-Setup-1.13.1.exe",
-      "https://gh-proxy.com/https://github.com/OWNER/REPO/releases/download/v1.13.1/TickFlow-Setup-1.13.1.exe",
+      "https://github.com/si-zero-0/tickflow/releases/download/v1.13.1/TickFlow-Setup-1.13.1.exe",
+      "https://gh-proxy.com/https://github.com/si-zero-0/tickflow/releases/download/v1.13.1/TickFlow-Setup-1.13.1.exe",
       "https://cdn.example.com/tickflow/TickFlow-Setup-1.13.1.exe"
     ]
   }]
@@ -105,7 +105,7 @@
 ```
 
 - 检查：`app.getVersion()` 与清单 `version` 做 semver 比较，只允许「远端更高」；`minSupported` 用于提示跨度太大需手动安装。
-- 清单获取顺序：jsDelivr（`cdn.jsdelivr.net/gh/OWNER/REPO@main/update/latest.json`，国内快、非 API）→ raw.githubusercontent → GitHub API `releases/latest`（兜底，带 ETag 缓存）。
+- 清单获取顺序：jsDelivr（`cdn.jsdelivr.net/gh/si-zero-0/tickflow@main/update/latest.json`，国内快、非 API）→ raw.githubusercontent → GitHub API `releases/latest`（兜底，带 ETag 缓存）。
 - 下载顺序：清单 `urls` 顺序 HEAD/Range 探测（2–3s 超时），失败换下一个；全部失败给「打开发布页」按钮。
 - 校验：下载到 `%TEMP%\tickflow-update\`，校验大小与 SHA256，不匹配删除重试。
 - 安装：用户确认后 `quitting=true`，`app.quit()`，再启动 `Setup.exe /S`（或 electron-builder 支持的更新参数）；启动器退出后安装器替换文件。
@@ -120,7 +120,7 @@
 
 | 层级 | 方案 | 说明 |
 |---|---|---|
-| 清单 | 仓库内 `update/latest.json` + jsDelivr CDN | `cdn.jsdelivr.net/gh/OWNER/REPO@main/update/latest.json`；国内可达、无 API 限流、可缓存 |
+| 清单 | 仓库内 `update/latest.json` + jsDelivr CDN | `cdn.jsdelivr.net/gh/si-zero-0/tickflow@main/update/latest.json`；国内可达、无 API 限流、可缓存 |
 | 清单兜底 | `raw.githubusercontent.com`、GitHub API | raw 也常被干扰；API 仅作最后兜底 |
 | 安装包主源 | GitHub Releases 资产直链 | 下载资产本身不走 API 配额 |
 | 安装包镜像 | ghproxy 类前缀（gh-proxy.com 等） | 同一 URL 加前缀；需在发布后实测可用性，不写死单一镜像 |
@@ -216,7 +216,7 @@
 
 **目标：1.13.1 起可自动检查/下载/安装更新，零新增运行时依赖，不买证书也能用。**
 
-1. **你**：建公开 GitHub 仓库（如 `OWNER/tickflow`）并推送；决定证书暂缓、镜像暂缓。
+1. **你**：建公开 GitHub 仓库（如 `si-zero-0/tickflow`）并推送；决定证书暂缓、镜像暂缓。
 2. **我**：改 ASCII 产物名；新增 `scripts/release.mjs`（生成 SHA256 + `latest.json`）；新增 `update.js` 检查器（jsDelivr 清单 → raw → GitHub API；下载 GitHub 直链 → ghproxy → 可选对象存储；SHA256 校验；`/S` 安装后退出）；preload/IPC 白名单；「关于」页入口；单测 + smoke。
 3. **你**：发第一个 Release（`v1.13.1`），把 `latest.json` 提交到 `update/` 或作为 Release 资产。
 4. **我**：从 1.13.0 实测升级到 1.13.1（含断网/镜像失败/哈希不符/已是最新四条路径），记录到 `IMPLEMENTATION-NOTES.md`。

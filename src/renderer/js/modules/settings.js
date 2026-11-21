@@ -264,6 +264,7 @@
         <div class="ab-line">反馈：B 站是主要入口，GitHub Issues 作为另一条渠道。</div>
         <div class="btn-row">
           <button class="btn sm" data-sact="open-link" data-url="https://space.bilibili.com/1138070117">B 站反馈</button>
+          <button class="btn sm ghost" data-sact="open-link" data-url="https://github.com/si-zero-0/tickflow">GitHub 仓库</button>
           <button class="btn sm ghost" data-sact="open-link" data-url="https://github.com/si-zero-0/tickflow/issues">GitHub Issues</button>
         </div>
       </div>`) + card('更新', '整包更新；下载后校验 SHA256，失败不会影响当前版本', `
