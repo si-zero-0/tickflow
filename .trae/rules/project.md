@@ -1,6 +1,6 @@
 # TickFlow v1.13.0 · Trae 项目规则
 
-1. 先读根目录 `START-HERE.md`、`AGENTS.md`、`docs/handoff/01-PRD-v1.13.md`、`02-UI-KUN-SPEC.md`、`03-M3-DUAL-ISLAND.md`。
+1. 先读根目录 `START-HERE.md`、`AGENTS.md`、`docs/handoff/01-PRD-v1.13.md`、`02-UI-KUN-SPEC.md`。
 2. 按 `docs/handoff/06-TASK-BREAKDOWN.md` 的 T0→T1→T2→T3 顺序做，不跳阶段。
 3. 现有项目是 Electron + 原生 HTML/CSS/JS，不换框架、不引入 React/Vue/Tailwind。
 4. 不复制 Kun 的 AI 业务（模型供应商/MCP/子代理/终端/手机/代码工作区）；只借视觉与设置 IA。

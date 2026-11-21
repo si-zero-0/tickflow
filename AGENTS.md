@@ -1,4 +1,4 @@
-# AGENTS.md · TickFlow v1.13.0
+# AGENTS.md · TickFlow v1.13.1
 
 本文件是给 AI 编码代理（Trae 等）的项目规则。与 `START-HERE.md`、`TRAE-PROMPT.md` 一起读。
 
@@ -6,14 +6,14 @@
 
 TickFlow（刻度）是本地优先的 Windows 桌面任务/进程管理工具：Electron 主进程 + 原生 HTML/CSS/JS 渲染层，无框架、无构建器、无后端。数据存 localStorage，主进程只管窗口/托盘/快捷键/协议。
 
-当前版本 1.13.0：Kun 风格 UI 重构 + M3 双岛（基线 v1.12.0）。
+当前版本 1.13.1：Kun 风格 UI + GitHub 自动更新（基线 v1.12.0；灵动岛已移除）。
 
 ## 2. 先读什么
 
 1. `START-HERE.md`
 2. `docs/handoff/01-PRD-v1.13.md`
 3. `docs/handoff/02-UI-KUN-SPEC.md`
-4. `docs/handoff/03-M3-DUAL-ISLAND.md`
+
 5. `docs/handoff/04-DESIGN-TOKENS.md` + `schemes.json`
 6. `docs/handoff/05-ARCHITECTURE.md`
 7. `docs/handoff/06-TASK-BREAKDOWN.md`
@@ -44,7 +44,7 @@ TickFlow（刻度）是本地优先的 Windows 桌面任务/进程管理工具�
 - 动效只动 `transform/opacity/color/border-color/box-shadow`；禁止 `transition: all`、`ease-in`、`scale(0)`。
 - 中文 UI 文案，短句，不用感叹号堆砌。
 - 新增文件必须在 `index.html` 或 `build.mjs` 的清单里登记；`verify.mjs` 会检查引用/顺序。
-- 不新增运行时依赖；M3 只用 Electron 原生 API。
+- 不新增运行时依赖；系统能力只用 Electron 原生 API。
 
 ## 5. 禁止事项
 
@@ -72,7 +72,7 @@ cd src/main && npx electron stage
 
 ## 7. 完成定义
 
-- `verify` 8/8、`npm test` 全绿、`stage` 完整、`TF.VERSION = 1.13.0`
+- `verify` 8/8、`npm test` 全绿、`stage` 完整、`TF.VERSION = 1.13.1`
 - 9 套配色 × 浅/深/系统，正文/元信息 ≥4.5
 - 字号/宽度实时生效并持久化
 - 12 视图 0 console error
