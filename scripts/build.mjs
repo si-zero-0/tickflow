@@ -64,6 +64,9 @@ fs.copyFileSync(path.join(MAIN, 'package.json'), path.join(STAGE, 'package.json'
 const updateConfig = path.join(MAIN, 'update-config.json');
 if (fs.existsSync(updateConfig)) fs.copyFileSync(updateConfig, path.join(STAGE, 'update-config.json'));
 copyDir(path.join(MAIN, 'ipc'), path.join(STAGE, 'ipc'));
+/* 运行时图标资源：主进程窗口/托盘要读到，必须一起进 stage 与 asar */
+const assetsDir = path.join(MAIN, 'assets');
+if (fs.existsSync(assetsDir)) copyDir(assetsDir, path.join(STAGE, 'assets'));
 
 /* 版本号注入：app.js 里的 TF.VERSION 一律以 package.json 为准，避免两处漂移 */
 const appJsPath = path.join(STAGE, 'www', 'js', 'modules', 'app.js');
@@ -100,7 +103,7 @@ if (!skipPackager) {
     path.join(MAIN, 'node_modules', '@electron', 'packager', 'bin', 'electron-packager.js'),
     STAGE, 'TickFlow',
     '--platform=win32', '--arch=x64',
-    '--icon=' + path.join(MAIN, 'build', 'icon.ico'),
+    '--icon=' + path.join(MAIN, 'assets', 'icon.ico'),
     '--out=' + DIST,
     '--asar',
     '--app-version=' + version,

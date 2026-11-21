@@ -28,10 +28,11 @@
       "preload.js",
       "ipc/**/*",
       "package.json",
+      "assets/**/*",
       "www/**/*"
     ],
     "win": {
-      "icon": "build/icon.ico",
+      "icon": "assets/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -50,7 +51,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "刻度 TickFlow",
-      "installerIcon": "build/icon.ico",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
       "uninstallDisplayName": "刻度 TickFlow",
       "artifactName": "TickFlow-Setup-${version}.exe"
     }

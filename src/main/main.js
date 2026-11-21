@@ -5,7 +5,8 @@ const ipc = require('./ipc');
 const update = require('./ipc/update');
 
 const APP_DIR = path.join(__dirname, 'www');
-const ICON = path.join(__dirname, 'build', 'icon.ico');
+const ICON = path.join(__dirname, 'assets', 'icon.ico');
+const TRAY_ICON = path.join(__dirname, 'assets', 'tray.png');
 const SMOKE = process.argv.includes('--smoke');
 /* 冒烟模式用软件渲染：透明/离屏截图在部分机器上会拿到旧帧 */
 if (SMOKE) app.disableHardwareAcceleration();
@@ -400,8 +401,9 @@ function createWindow() {
 }
 
 function buildTray() {
-  if (!fs.existsSync(ICON)) return;
-  try { tray = new Tray(nativeImage.createFromPath(ICON)); } catch (e) { return; }
+  const trayPath = fs.existsSync(TRAY_ICON) ? TRAY_ICON : ICON;
+  if (!fs.existsSync(trayPath)) return;
+  try { tray = new Tray(nativeImage.createFromPath(trayPath)); } catch (e) { return; }
   const menu = Menu.buildFromTemplate([
     { label: '打开刻度', click: () => { win.show(); win.focus(); } },
     { label: '快速捕获（Ctrl+Alt+Space）', click: capture },

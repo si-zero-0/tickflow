@@ -333,5 +333,63 @@ views：17 个视图态全部有内容
 - 新增 `tf:shell:open-external` 白名单（仅 B 站与 Issues 两个地址）。
 - 仓库 About：面向用户的一句话描述 + topics（electron / windows / todo / task-manager / local-first）。
 
+---
 
+## 16. 应用图标：笔记本（2026-11-21，U-11）
 
+### 16.1 来源与处理
+
+- 来源：用户提供的 Snipaste 截图（浅底带留白的蓝色笔记本图标），以该图为唯一来源，未重绘。
+- 处理流程（ImageMagick）：
+  1. `-alpha set -fuzz 6% -fill none -draw "color 0,0 floodfill"`：从四角泛洪去白底，保留图形内部浅蓝页面；
+  2. `-trim +repage`：裁掉多余留白，内容 194×173；
+  3. 居中扩为 194×194，再加 13px 透明边（约 6% 安全边）→ 1024 母版；
+  4. Lanczos 缩出 256 / 128 / 64 / 48 / 32，16 与 24 用下方简化矢量。
+- 不改变图形本身：轮廓、装订环、横线数量与位置均取自源图；描边色采样 `#1F6FEB`，内页 `#D7E5FB`。
+- 透明背景，圆角处无白边；未带入任何本机路径。
+
+### 16.2 生成资源（`src/main/assets/`）
+
+| 文件 | 内容 |
+|---|---|
+| `icon.ico` | 7 帧：16 / 24 / 32 / 48 / 64 / 128 / 256（32 位带 alpha） |
+| `icon-256.png` | 256×256 主图（光栅母版缩放） |
+| `tray.png` | 32×32，托盘使用，取简化矢量（16px 显示时更清楚） |
+| `icon-small.svg` | 16/24 与托盘的简化矢量源：同一几何、描边加粗、去掉过密细节 |
+| ~~`icon.svg`~~ | 上一版原子矢量，已删除 |
+
+接线保持不变：`scripts/build.mjs` 复制 `assets` → stage/asar；`win.icon` / `nsis.installerIcon` / `nsis.uninstallerIcon` 指向 `assets/icon.ico`；`main.js` 窗口与托盘读 `assets/icon.ico` / `assets/tray.png`。
+
+### 16.3 小尺寸可辨识度
+
+| 尺寸 | 方案 | 浅底 #F4F4F4 | 深底 #202020 |
+|---|---|---|---|
+| 16 | 简化矢量，描边加粗 | 可辨（横线与装订环成形） | 可辨 |
+| 24 | 简化矢量 | 清楚 | 清楚 |
+| 32 | 光栅母版缩放 | 清楚，边缘干净 | 清楚 |
+
+- 直接缩光栅到 16px 会糊成蓝块（实测），因此 16/24 改走简化矢量；32 起保留源图细节。
+- 证据：`docs/handoff/evidence-icon-v2/6-small-sizes-light.png`、`7-small-sizes-dark.png`。
+
+### 16.4 各处图标实测（本轮构建）
+
+构建：`node scripts/build.mjs`；安装包 `TickFlow-Setup-1.13.2.exe` 116.3 MB，SHA256 见 release/SHA256SUMS.txt。
+
+| 位置 | 结果 | 取证 / 截图 |
+|---|---|---|
+| 安装器 exe | 笔记本 | `ExtractAssociatedIcon`；`9-installer-exe-uninstaller.png` |
+| 安装版 exe | 笔记本 | 同左 |
+| 卸载器 | 笔记本 | 安装目录 `uninstallerIcon.ico` + `Uninstall TickFlow.exe` |
+| 窗口左上角 | 笔记本 | 实拍 `1-window-titlebar.png` |
+| 任务栏按钮 | 笔记本 | 实拍 `2-taskbar-button.png` |
+| 托盘溢出区 | 笔记本 | 打开「显示隐藏的图标」实拍 `3-tray-overflow.png`；UIA 名「刻度 TickFlow」 |
+| 托盘右键菜单 | 可用 | 打开刻度 / 快速捕获 (Ctrl+Alt+Space) / 退出；`4-tray-context-menu.png` |
+| 桌面快捷方式 | 笔记本 | 快捷方式 shell 图标（含快捷箭头）`5-desktop-shortcut.png`；`IconLocation=TickFlow.exe,0` |
+| 开始菜单快捷方式 | 笔记本 | Programs 文件夹大图标视图 `8-start-menu.png`；与桌面同一 `.lnk`、同一 IconLocation |
+
+### 16.5 异常与假设
+
+- 桌面图标被常驻工具 `AutoHideDesktopIcons` 隐藏，无法直接截桌面画布；改用快捷方式 shell 图标 + 资源管理器大图标视图核对，图标本身正确。
+- 重装后开始菜单搜索索引未立即刷新（搜索不到应用条目），改用 Programs 文件夹大图标核验。
+- 首次静默安装瞬间安装目录为空、卸载注册项短暂消失，数秒后完整写入（NSIS 先移除旧版再写新版），无功能影响。
+- 先启动同 `user-data-dir` 的实例再跑 `npx electron stage --smoke`，会报磁盘缓存"拒绝访问"（目录被占用）；`tickflow-smoke.json` 的 `consoleErrors` 仍为 `[]`。
