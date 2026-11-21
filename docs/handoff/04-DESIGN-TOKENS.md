@@ -23,7 +23,7 @@ data-width  = 896                 // 640..1200，px
 
 ### 2.1 首屏兜底
 
-`css/theme.css` 里保留 `:root` 的 Kun 默认 dark token + `[data-mode="light"]` 的默认 light token，避免 JS 未执行时白屏/闪白。
+`css/theme.css` 里保留 `:root` 的默认 dark token + `[data-mode="light"]` 的默认 light token，避免 JS 未执行时白屏/闪白。
 
 ### 2.2 运行时注入
 
@@ -130,7 +130,7 @@ function applyAppearance(a) {
 
 | scheme | 名称 | 描述 | 主色（dark/light） |
 |---|---|---|---|
-| `kun-default` | Kun 默认 | 雾灰底 · 柔和蓝 | `#5AA7FF` / `#2768C2` |
+| `kun-default` | 默认 | 雾灰底 · 柔和蓝 | `#5AA7FF` / `#2768C2` |
 | `sky` | 晴空蓝白 | 白底 · 天空蓝 | `#6FB6FF` / `#1F6FD6` |
 | `parchment` | 羊皮纸 | 米白纸张 · 青绿 · 梅紫 | `#37C2AE` / `#0A6F65` |
 | `mint` | 薄荷 | 浅绿底 · 薄荷绿 | `#3DDC97` / `#0E7A5A` |

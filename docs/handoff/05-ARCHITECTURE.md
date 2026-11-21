@@ -77,7 +77,7 @@ settings.appearance
 
 ### 3.2 首屏
 
-- `theme.css` 写死 Kun 默认 dark + light 兜底，避免 JS 加载前闪白。
+- `theme.css` 写死默认 dark + light 兜底，避免 JS 加载前闪白。
 - `index.html` 的 `<html>` 默认 `data-mode="dark" data-scheme="kun-default"`。
 - `appearance.js` 在主窗启动最早阶段执行（在 `app.js` 之前或 `app.init` 第一行）。
 

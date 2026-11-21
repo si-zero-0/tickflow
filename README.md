@@ -4,7 +4,7 @@ Windows 本地任务与进程管理工具。把「今天要做什么、做到哪
 
 本地优先：不需要账号，不连接云端，没有内购；任务、愿望、专注记录只存在你自己的电脑上。
 
-![TickFlow 主界面](reference/images/02-main-shell.png)
+![TickFlow 主界面（浅色）](docs/images/main-light.png)
 
 ## 它解决什么问题
 
@@ -22,7 +22,7 @@ Windows 本地任务与进程管理工具。把「今天要做什么、做到哪
 
 ## 下载与安装
 
-1. 打开 [Releases](https://github.com/si-zero-0/tickflow/releases/latest)。
+1. 打开 [Releases](https://github.com/si-zero-0/tickflow/releases/latest)（仓库主页：[si-zero-0/tickflow](https://github.com/si-zero-0/tickflow)）。
 2. 下载 `TickFlow-Setup-1.13.1.exe`（文件名以最新 Release 为准）。
 3. 双击安装。默认装到 `%LOCALAPPDATA%\Programs\TickFlow`，不需要管理员权限，可以改安装目录。
 4. 如果出现「Windows 已保护你的电脑」：
@@ -53,6 +53,79 @@ Windows 本地任务与进程管理工具。把「今天要做什么、做到哪
 - 首次启动会带几条示例任务，可以直接删掉，也可以拿来熟悉操作。
 
 不需要登录，也没有引导弹窗。
+
+深色外观（设置 → 外观可切换浅色 / 深色 / 跟随系统）：
+
+![TickFlow 主界面（深色）](docs/images/main-dark.png)
+
+## 功能详解
+
+### 任务与清单
+
+![今天视图](docs/images/today.png)
+
+左侧「工作台」按收件箱、今天、未来七天、全部、已完成分开，每项带未完成数量。今天页顶部是快速添加框，支持 `!1`–`!3` 优先级、`#标签`、`@清单` 和「今天 / 明天」等写法，回车即建任务。带子任务的行会显示「2/3」进度，已完成任务留在「已完成」里，不会消失。
+
+### 四象限
+
+![四象限](docs/images/quadrants.jpg)
+
+「视图 → 四象限」按重要 / 紧急自动分桶，每格右上角显示任务数。把任务拖到别的象限会改写它的优先级或日期，适合先决定「现在先做哪一件」。分桶规则写在页面底部，不用记。
+
+### 时间轴
+
+![时间轴](docs/images/timeline.png)
+
+「视图 → 时间轴」把今天带时刻的任务摆到 24 小时刻度上。整点单块、跨小时长块、同一时间开始的多个任务会自动分列，15 分钟短块用单行紧凑显示，长标题最多两行。左侧时刻刻度固定可见，滚动区域自动定位到当前时间附近。
+
+### 日历
+
+![日历](docs/images/calendar.png)
+
+「视图 → 日历」按月查看任务分布，每个日期格列出当天任务，今天用强调色描边。点日期进入当天任务视图，点任务打开详情，适合排周期和找空档。
+
+### 习惯
+
+![习惯](docs/images/habits.png)
+
+「视图 → 习惯」每天点一下打卡，右侧一周圆点记录最近状态。连续天数、近 30 天完成率会即时更新；打卡与任务完成都会计入统计页。
+
+### 统计
+
+![统计](docs/images/stats.png)
+
+「视图 → 统计」把今日 / 近 7 天完成、连续天数、清单完成度、近 14 天趋势和进程进度放在一页。数据来自本机任务与专注记录，不需要联网，适合每周复盘一次。
+
+### 专注（番茄钟）
+
+![番茄钟](docs/images/pomodoro.png)
+
+「工具 → 专注」默认 25 分钟工作、5 分钟短休息、15 分钟长休息，空格开始或暂停。可以把本次专注关联到某条任务，结束后自动记到任务和统计。今日记录按时间列出，时长可在「设置 → 通用 → 专注」里调整。
+
+### 进程管理
+
+![进程](docs/images/process.jpg)
+
+「视图 → 进程」把长期目标拆成主线与支线节点，节点之间有依赖箭头，前置完成后后续节点变为「可推进」。每个节点可放清单、状态和到期日；画布支持缩放与拖拽，节点多时点「适应宽度」。
+
+### 命令面板
+
+![命令面板](docs/images/palette.jpg)
+
+`Ctrl + K` 打开命令面板，输入关键词即可跳视图、建任务、开专注或切换外观。上下键选择、回车执行、`Esc` 关闭；面板里的操作全部发生在本地。
+
+### 全局快速捕获
+
+![快速捕获](docs/images/capture.jpg)
+
+`Ctrl + Alt + Space` 在任何软件里呼出快速捕获，输入一句话回车就存进收集箱。支持 `#标签` 和 `!1`–`!3` 优先级，不用先切回 TickFlow；详细拆分可以稍后在任务详情里做。
+
+### 导入导出与快照
+
+![数据设置](docs/images/data.png)
+
+「设置 → 数据」可以导出 JSON / Markdown / CSV，换电脑时在新机器导入 JSON 或 CSV。应用每天首次启动自动留一份快照，保留最近 3 份；误删或误改可在同一页恢复。
+
 
 ## 常用操作
 
@@ -114,7 +187,8 @@ Windows 本地任务与进程管理工具。把「今天要做什么、做到哪
 ## 反馈
 
 - B 站（主要反馈入口）：[space.bilibili.com/1138070117](https://space.bilibili.com/1138070117)
-- GitHub Issues：[si-zero-0/tickflow/issues](https://github.com/si-zero-0/tickflow/issues)
+- GitHub 仓库：[github.com/si-zero-0/tickflow](https://github.com/si-zero-0/tickflow)
+- GitHub Issues：[github.com/si-zero-0/tickflow/issues](https://github.com/si-zero-0/tickflow/issues)
 
 反馈时请说明：系统版本、TickFlow 版本、复现步骤；能附截图更好。
 

@@ -169,7 +169,7 @@ npx electron stage --smoke 场景结果：
 
 | ID | 改动 | 文件 | 实测 |
 |---|---|---|---|
-| U-01 | 配色首卡显示名「Kun 默认」→「默认」；内部 id `kun-default`、默认值、迁移映射均不变 | `js/modules/settings.js`、`data/schemes.json`、`docs/handoff/schemes.json` | 设置·外观首卡显示「默认」，右上「当前：默认 · 深色」 |
+| U-01 | 配色首卡显示名改为「默认」；内部 id `kun-default`、默认值、迁移映射均不变 | `js/modules/settings.js`、`data/schemes.json`、`docs/handoff/schemes.json` | 设置·外观首卡显示「默认」，右上「当前：默认 · 深色」 |
 | U-02 | 顶部岛改苹果灵动岛形态（覆盖此前的贴边刘海方案）：纯黑胶囊、四角全圆、离屏幕顶边 8px、无边框、轻微阴影 | `css/top-island.css`、`js/modules/top-island.js`、`ipc/top-island.js`、`ipc/island-protocol.js`、`js/core/store.js`、`js/modules/settings.js` | 见下方三态实测 |
 
 U-02 关键实现：

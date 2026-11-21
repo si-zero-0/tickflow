@@ -26,15 +26,28 @@
     }).sort((a, b) => a.start - b.start || b.end - a.end);
     const loose = all.filter(x => !x.dueTime);
 
-    // 重叠分列
-    const colEnd = [];
+    // 重叠分列：按「重叠簇」单独分配列宽，互不重叠的簇占满整行
+    let cluster = [], clusterEnd = -1;
+    const flush = () => {
+      if (!cluster.length) return;
+      const colEnd = [];
+      cluster.forEach(b => {
+        let ci = colEnd.findIndex(e => e <= b.start);
+        if (ci < 0) { colEnd.push(b.end); ci = colEnd.length - 1; }
+        else colEnd[ci] = b.end;
+        b.col = ci;
+      });
+      const width = 100 / colEnd.length;
+      cluster.forEach(b => { b.cols = colEnd.length; b.w = width; });
+      cluster = []; clusterEnd = -1;
+    };
     timed.forEach(b => {
-      let ci = colEnd.findIndex(e => e <= b.start);
-      if (ci < 0) { colEnd.push(b.end); ci = colEnd.length - 1; }
-      else colEnd[ci] = b.end;
-      b.col = ci;
+      if (!cluster.length || b.start < clusterEnd) {
+        cluster.push(b);
+        clusterEnd = Math.max(clusterEnd, b.end);
+      } else { flush(); cluster.push(b); clusterEnd = b.end; }
     });
-    const cols = Math.max(1, colEnd.length);
+    flush();
     const conflicts = timed.length - new Set(timed.map(b => b.col)).size > 0 ? 1 : 0;
 
     const now = new Date();
@@ -49,7 +62,7 @@
       const l = S().list(b.task.listId) || { color: 'var(--ac)', name: '' };
       const top = b.start * PX;
       const h = Math.max(26, (b.end - b.start) * PX - 3);
-      const w = 100 / cols;
+      const w = b.w || 100;
       const small = h < 40;
       return `<div class="tl-block ${small ? 'small' : ''}" data-open="${b.task.id}"
           style="top:${top}px;height:${h}px;left:calc(${b.col * w}% + 2px);width:calc(${w}% - 4px);--lc:${l.color}">
@@ -77,7 +90,7 @@
           <div class="tl-canvas" style="height:${H24 + 20}px">
             ${hours.join('')}
             <div class="tl-now" style="top:${nowMin * PX}px"><span>${fmt(nowMin)}</span></div>
-            ${blocks}
+            <div class="tl-lane">${blocks}</div>
             ${timed.length ? '' : `<div class="tl-empty">今天还没有排定时刻的任务<br><span>在任务详情里把「时间」设成时间点或时段即可出现在这里</span></div>`}
           </div>
         </div>

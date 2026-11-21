@@ -24,13 +24,14 @@
 .tl-stat{font-size:12px;color:var(--tx3)}
 .tl-stat b{color:var(--tx);font-weight:600}
 .tl-head .btn{margin-left:auto}
-.tl-body{display:grid;grid-template-columns:1fr 246px;gap:12px}
+.tl-body{display:grid;grid-template-columns:1fr;gap:12px}
 .tl-scroll{position:relative;overflow-y:auto;height:calc(100vh - 246px);min-height:340px;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r2)}
 .tl-canvas{position:relative;margin:10px 0}
 .tl-hour{position:absolute;left:0;right:0;height:1px;border-top:1px dashed var(--line)}
 .tl-hour span{position:absolute;left:10px;top:-8px;font-size:10.5px;color:var(--tx3);
   background:var(--panel);padding:0 4px;font-variant-numeric:tabular-nums}
+.tl-lane{position:absolute;left:56px;right:0;top:0;bottom:0}
 .tl-now{position:absolute;left:0;right:0;height:1px;background:var(--dan);z-index:3}
 .tl-now span{position:absolute;right:8px;top:-9px;font-size:10px;font-weight:700;color:var(--ac-ink);
   background:var(--dan);padding:1px 6px;border-radius:20px}
@@ -41,11 +42,12 @@
 .tl-block:hover{background:color-mix(in srgb,var(--lc) 22%,var(--panel2))}
 .tl-block:active{transform:scale(.995)}
 .tl-block .tl-time{display:block;font-size:10.5px;color:var(--tx3);font-variant-numeric:tabular-nums}
-.tl-block .tl-title{display:block;font-size:12.5px;font-weight:500;line-height:1.35;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-block .tl-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  font-size:12.5px;font-weight:500;line-height:1.35;overflow:hidden;white-space:normal;overflow-wrap:anywhere}
 .tl-block .tl-sub{display:block;font-size:10.5px;color:var(--tx3);margin-top:1px}
-.tl-block.small{padding:3px 8px}
-.tl-block.small .tl-title{font-size:12px}
+.tl-block.small{display:flex;align-items:center;gap:6px;padding:0 8px}
+.tl-block.small .tl-time{font-size:10px;white-space:nowrap;flex:none}
+.tl-block.small .tl-title{font-size:11.5px;line-height:1.2;-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;min-width:0}
 .tl-empty{position:absolute;left:0;right:0;top:80px;text-align:center;font-size:13px;color:var(--tx3);line-height:1.8}
 .tl-empty span{font-size:11.5px}
 .tl-side{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);

@@ -84,6 +84,21 @@ function createWindow() {
         let probe = {}, sceneResult = '';
         try {
           const scene = String(process.env.TF_SMOKE_SCENE || 'main');
+          /* 功能截图统一浅色：TF_SMOKE_LIGHT=1 在场景执行前切换 */
+          if (process.env.TF_SMOKE_LIGHT === '1') await win.webContents.executeJavaScript("TF.applyAppearance({mode:'light'}); 'light'");
+          if (process.env.TF_SMOKE_DARK === '1') await win.webContents.executeJavaScript("TF.applyAppearance({mode:'dark'}); 'dark'");
+          /* 功能截图造样例：补最近 7 天的专注记录，避免统计页空数据 */
+          if (process.env.TF_SMOKE_DEMO === '1') await win.webContents.executeJavaScript(`(()=>{
+            const d=TF.Store.data;
+            if (!d.pomoLog || !d.pomoLog.length) {
+              const now=Date.now();
+              for (let i=6;i>=0;i--) for (const m of [25,25,50]) {
+                if ((i+m)%4===0) continue;
+                d.pomoLog.push({ts: now-i*864e5+(m*60e3), minutes:m, taskId:null});
+              }
+            }
+            return 'demo';
+          })()`);
           if (scene.indexOf('update:') === 0) {
             const which = scene.slice(7);
             sceneResult = await win.webContents.executeJavaScript(`(async()=>{
@@ -104,6 +119,9 @@ function createWindow() {
             })()`);
           }
           else if (scene === 'settings') sceneResult = await win.webContents.executeJavaScript("TF.openSettings('appearance'); 'ok'");
+          else if (scene === 'data') sceneResult = await win.webContents.executeJavaScript("TF.openSettings('data'); 'data'");
+          else if (scene === 'palette') sceneResult = await win.webContents.executeJavaScript("TF.App.view={type:'habits'}; TF.App.render(); if (TF.openPalette) TF.openPalette(); const m=document.querySelector('.pal-mask'); if(m){m.style.backdropFilter='none';m.style.webkitBackdropFilter='none';} 'palette'");
+          else if (scene === 'capture') sceneResult = await win.webContents.executeJavaScript("TF.App.view={type:'habits'}; TF.App.render(); if (TF.openCapture) TF.openCapture(); 'capture'");
           else if (scene === 'settings-fx') sceneResult = await win.webContents.executeJavaScript(`(async()=>{
             TF.openSettings('appearance');
             await new Promise(r=>setTimeout(r,300));
@@ -283,10 +301,74 @@ function createWindow() {
           const size = String(process.env.TF_SMOKE_SIZE || '1400x900').split('x').map(Number);
           if (size[0] >= 1060 && size[1] >= 700) win.setSize(size[0], size[1]);
           await new Promise(r => setTimeout(r, 500));
+          /* 一次进程连续截多张功能图：TF_SMOKE_SERIES=today,quadrants,... */
+          const series = String(process.env.TF_SMOKE_SERIES || '').split(',').filter(Boolean);
+          if (series.length) {
+            const files = [];
+            for (const name of series) {
+              /* 每张图前清场：关面板/设置、清空快速输入草稿，避免上一张残留 */
+              let js = `(async()=>{
+                try { if (TF.closePalette) TF.closePalette(); } catch(e){}
+                const pal=document.getElementById('pal'); if (pal) pal.remove();
+                const cp=document.getElementById('cap'); if (cp) cp.remove();
+                if (TF.Settings && TF.Settings.open && TF.closeSettings) TF.closeSettings();
+                const qa=document.getElementById('qa-input'); if (qa){ qa.value=''; qa.dispatchEvent(new Event('input',{bubbles:true})); }
+                await new Promise(r=>setTimeout(r,180));
+              `;
+              if (name === 'timeline') {
+                /* 造时间轴样例：整点块 / 长块 / 同起点重叠 / 15 分钟短块 / 长标题 */
+                js += `const d=TF.Store.data, t=TF.today();
+                  const T=(id,title,st,en,listId)=>{d.tasks=d.tasks.filter(x=>x.id!==id);d.tasks.push({
+                    id,listId:listId||'l_work',title,notes:'',done:false,doneAt:null,
+                    createdAt:new Date().toISOString(),due:t,dueTime:st,dueEnd:en,priority:0,
+                    tags:[],subtasks:[],repeat:null,nodeId:null,pomo:0,order:0});};
+                  T('tlf_1','整理本周需求清单','09:00','10:00');
+                  T('tlf_2','MVP 首页联调与验收','10:30','12:30');
+                  T('tlf_3','客户方案沟通','13:30','14:30');
+                  T('tlf_4','内部方案评审','13:30','14:15');
+                  T('tlf_5','下周发布资料整理','13:30','15:00','l_life');
+                  T('tlf_6','给合作方回邮件','15:00','15:15');
+                  T('tlf_7','把下周发布计划拆成可执行步骤并同步给三位协作同事','15:30','16:30','l_study');
+                  TF.App.view={type:'timeline'};TF.App.render();
+                  const sc=document.getElementById('tl-scroll'); if(sc) sc.scrollTop=545;`;
+              } else if (name === 'stats') {
+                /* 补近 7 天完成与今日打卡，统计页才有趋势 */
+                js += `const d=TF.Store.data, now=Date.now();
+                  d.tasks.filter(x=>!x.done).slice(0,7).forEach((x,i)=>{
+                    x.done=true; x.doneAt=new Date(now-Math.min(i,6)*864e5).toISOString();
+                  });
+                  d.habits.forEach(h=>{h.records[TF.today()]=1;});
+                  TF.App.view={type:'stats'};TF.App.render();`;
+              } else if (name === 'process') {
+                js += `TF.RM.userZoom=true; TF.RM.zoom=0.6; TF.App.view={type:'process'}; TF.App.render();`;
+              } else if (name === 'palette') {
+                js += `TF.App.view={type:'habits'}; TF.App.render(); TF.openPalette();
+                  const pm=document.querySelector('.pal-mask'); if(pm){pm.style.backdropFilter='none';pm.style.webkitBackdropFilter='none';}`;
+              } else if (name === 'capture') {
+                js += `TF.App.view={type:'habits'}; TF.App.render(); TF.openCapture();`;
+              } else if (name === 'data') {
+                js += `TF.openSettings('data');`;
+              } else if (name === 'settings') {
+                js += `TF.openSettings('appearance');`;
+              } else {
+                js += `TF.App.view={type:${JSON.stringify(name)}}; TF.App.render();`;
+              }
+              js += `return 'ok';})()`;
+              await win.webContents.executeJavaScript(js);
+              await new Promise(r => setTimeout(r, name === 'process' ? 900 : (name === 'palette' || name === 'capture' ? 750 : 500)));
+              const simg = await win.webContents.capturePage();
+              const tag = String(process.env.TF_SMOKE_TAG || '');
+              const file = path.join(app.getPath('temp'), `tickflow-shot-${name}${tag}-${size[0]}x${size[1]}.png`);
+              fs.writeFileSync(file, simg.toPNG());
+              files.push(file);
+            }
+            shot = files.join('|');
+          } else {
           const img = await win.webContents.capturePage();
           const scene = String(process.env.TF_SMOKE_SCENE || 'main').replace(/[\\/:*?"<>|]/g, '-');
           shot = path.join(app.getPath('temp'), `tickflow-smoke-${scene}-${size[0]}x${size[1]}.png`);
           fs.writeFileSync(shot, img.toPNG());
+          }
         } catch (err) { shot = 'shot-failed: ' + String(err); }
         fs.writeFileSync(path.join(app.getPath('temp'), 'tickflow-smoke.json'),
           JSON.stringify({ url: win.webContents.getURL(), sceneResult, probe, consoleErrors: log, shot }, null, 2));

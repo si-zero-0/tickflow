@@ -21,7 +21,7 @@
 
 ---
 
-## Phase 1 · Kun 风格 UI（P0）
+## Phase 1 · 现代桌面风格 UI（P0）
 
 ### T1.1 Token 与外观运行时
 - 文件：`css/theme.css`、`js/modules/appearance.js`、`data/schemes.json`

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "TickFlow Kun-style appearance schemes",
+    "name": "TickFlow appearance schemes",
     "version": 1,
     "updated": "2026-11-20",
     "notes": "Colors are starting values. Implementer must run WCAG contrast tests and may adjust within the same hue family; record changes in IMPLEMENTATION-NOTES.md."

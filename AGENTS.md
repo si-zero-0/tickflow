@@ -6,13 +6,13 @@
 
 TickFlow（刻度）是本地优先的 Windows 桌面任务/进程管理工具：Electron 主进程 + 原生 HTML/CSS/JS 渲染层，无框架、无构建器、无后端。数据存 localStorage，主进程只管窗口/托盘/快捷键/协议。
 
-当前版本 1.13.1：Kun 风格 UI + GitHub 自动更新（基线 v1.12.0；灵动岛已移除）。
+当前版本 1.13.1：现代桌面风格 UI + GitHub 自动更新（基线 v1.12.0；灵动岛已移除）。
 
 ## 2. 先读什么
 
 1. `START-HERE.md`
 2. `docs/handoff/01-PRD-v1.13.md`
-3. `docs/handoff/02-UI-KUN-SPEC.md`
+3. `docs/handoff/02-UI-SPEC.md`
 
 5. `docs/handoff/04-DESIGN-TOKENS.md` + `schemes.json`
 6. `docs/handoff/05-ARCHITECTURE.md`
@@ -49,7 +49,7 @@ TickFlow（刻度）是本地优先的 Windows 桌面任务/进程管理工具�
 ## 5. 禁止事项
 
 - 不重写项目、不换框架、不引入 React/Vue/Tailwind。
-- 不复制 Kun 的 AI 业务（模型供应商、MCP、子代理、终端、手机、代码工作区）。
+- 不复制参考应用的 AI 业务（模型供应商、MCP、子代理、终端、手机、代码工作区）。
 - 不引入账号、后端、云同步、支付。
 - 不改 `reference/` 与 `docs/iteration-112/` 历史文档。
 - 不删 `artifacts/`、`build/`、用户数据。
@@ -78,6 +78,7 @@ cd src/main && npx electron stage
 - 12 视图 0 console error
 - 1060/1400/4K 无穿帮
 - `docs/handoff/IMPLEMENTATION-NOTES.md` 记录所有偏差与假设
+- 交付前按 `docs/handoff/DELIVERY-CHECKLIST.md` 六项检查，汇报时逐项给出结果
 
 ## 8. 汇报格式
 
