@@ -1,7 +1,7 @@
 {
   "name": "tickflow",
   "productName": "TickFlow",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "description": "刻度 TickFlow — 本地任务与进程管理（硅基零号机）",
   "main": "main.js",
   "author": {
