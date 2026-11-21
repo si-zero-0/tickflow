@@ -2,7 +2,7 @@
 (function () {
   const TF = window.TF, S = () => TF.Store, esc = TF.esc;
   // 版本号：与 src/main/package.json 保持一致；build.mjs 在打 stage 时按 package.json 覆盖此值
-  TF.VERSION = '1.13.2';
+  TF.VERSION = '1.13.3';
 
   const App = TF.App = {
     view: { type: 'today' },

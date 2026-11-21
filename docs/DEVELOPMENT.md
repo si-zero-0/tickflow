@@ -67,7 +67,7 @@ npm run build
 3. 生成清单：
 
 ```powershell
-node scripts/release.mjs --tag=v1.13.2
+node scripts/release.mjs --tag=v1.13.3
 ```
 
 会生成 `update/latest.json` 和 `SHA256SUMS.txt`，并校验 tag 与版本一致。

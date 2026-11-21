@@ -17,13 +17,13 @@ Windows 本地任务与进程管理工具。把「今天要做什么、做到哪
 
 ## 当前版本
 
-- 版本：**1.13.2**，Windows 10 / 11 64 位，正式可用。
+- 版本：**1.13.3**，Windows 10 / 11 64 位，正式可用。
 - 安装包未做代码签名，首次运行会出现 SmartScreen 提示，按下面的步骤继续即可。
 
 ## 下载与安装
 
 1. 打开 [Releases](https://github.com/si-zero-0/tickflow/releases/latest)（仓库主页：[si-zero-0/tickflow](https://github.com/si-zero-0/tickflow)）。
-2. 下载 `TickFlow-Setup-1.13.2.exe`（文件名以最新 Release 为准）。
+2. 下载 `TickFlow-Setup-1.13.3.exe`（文件名以最新 Release 为准）。
 3. 双击安装。默认装到 `%LOCALAPPDATA%\Programs\TickFlow`，不需要管理员权限，可以改安装目录。
 4. 如果出现「Windows 已保护你的电脑」：
    - 点「更多信息」；

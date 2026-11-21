@@ -1,17 +1,17 @@
 {
-  "version": "1.13.2",
+  "version": "1.13.3",
   "minSupported": "1.12.0",
-  "publishedAt": "2026-11-21T05:12:24.073Z",
-  "notes": "v1.13.2：README 改为当前构建的真实截图与 11 个功能详解；修复时间轴重叠块分列、15 分钟短块、长标题与时刻刻度显示；统一 GitHub 链接；清理界面与文档中的第三方品牌字样。本版包含灵动岛移除后的全部代码。",
+  "publishedAt": "2026-11-21T08:08:02.851Z",
+  "notes": "v1.13.3：应用图标替换为笔记本图标，安装器/卸载器/exe/窗口/任务栏/托盘/开始菜单与桌面快捷方式全链路同步；16/24/32 小尺寸单独简化，浅色与深色任务栏均可辨。",
   "files": [
     {
       "kind": "nsis",
-      "name": "TickFlow-Setup-1.13.2.exe",
-      "size": 121636706,
-      "sha256": "5924ef78d669e0a74914b26d913ed77f0a2b00739c7c529c82655f3759800e7a",
+      "name": "TickFlow-Setup-1.13.3.exe",
+      "size": 121903573,
+      "sha256": "c1ad4408e40ae71efea206bbd4296c02e9110aba3887f5ce4151f9708e247c86",
       "urls": [
-        "https://github.com/si-zero-0/tickflow/releases/download/v1.13.2/TickFlow-Setup-1.13.2.exe",
-        "https://gh-proxy.com/https://github.com/si-zero-0/tickflow/releases/download/v1.13.2/TickFlow-Setup-1.13.2.exe"
+        "https://github.com/si-zero-0/tickflow/releases/download/v1.13.3/TickFlow-Setup-1.13.3.exe",
+        "https://gh-proxy.com/https://github.com/si-zero-0/tickflow/releases/download/v1.13.3/TickFlow-Setup-1.13.3.exe"
       ]
     }
   ]

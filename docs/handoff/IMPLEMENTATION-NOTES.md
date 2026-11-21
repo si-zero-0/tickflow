@@ -373,7 +373,7 @@ views：17 个视图态全部有内容
 
 ### 16.4 各处图标实测（本轮构建）
 
-构建：`node scripts/build.mjs`；安装包 `TickFlow-Setup-1.13.2.exe` 116.3 MB，SHA256 见 release/SHA256SUMS.txt。
+构建：`node scripts/build.mjs`；安装包 `TickFlow-Setup-1.13.3.exe`，SHA256 见 release/SHA256SUMS.txt。
 
 | 位置 | 结果 | 取证 / 截图 |
 |---|---|---|
