@@ -1,4 +1,4 @@
-# AGENTS.md · TickFlow v1.13.1
+# AGENTS.md · TickFlow v1.13.2
 
 本文件是给 AI 编码代理（Trae 等）的项目规则。与 `START-HERE.md`、`TRAE-PROMPT.md` 一起读。
 
@@ -6,7 +6,7 @@
 
 TickFlow（刻度）是本地优先的 Windows 桌面任务/进程管理工具：Electron 主进程 + 原生 HTML/CSS/JS 渲染层，无框架、无构建器、无后端。数据存 localStorage，主进程只管窗口/托盘/快捷键/协议。
 
-当前版本 1.13.1：现代桌面风格 UI + GitHub 自动更新（基线 v1.12.0；灵动岛已移除）。
+当前版本 1.13.2：现代桌面风格 UI + GitHub 自动更新（基线 v1.12.0；灵动岛已移除）。
 
 ## 2. 先读什么
 
@@ -72,7 +72,7 @@ cd src/main && npx electron stage
 
 ## 7. 完成定义
 
-- `verify` 8/8、`npm test` 全绿、`stage` 完整、`TF.VERSION = 1.13.1`
+- `verify` 8/8、`npm test` 全绿、`stage` 完整、`TF.VERSION = 1.13.2`
 - 9 套配色 × 浅/深/系统，正文/元信息 ≥4.5
 - 字号/宽度实时生效并持久化
 - 12 视图 0 console error

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* 发布清单脚本（本地与 GitHub Actions 通用）：
  *   node scripts/release.mjs                 # 生成 build/release/SHA256SUMS.txt 与 update/latest.json
- *   node scripts/release.mjs --tag=v1.13.1   # 额外校验 tag 与版本一致
+ *   node scripts/release.mjs --tag=v1.13.2   # 额外校验 tag 与版本一致
  *   node scripts/release.mjs --check         # 只做版本/tag/产物检查，不写文件
  *
  * 只读构建产物；不创建仓库、不推送、不发 Release。

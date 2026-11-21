@@ -1,6 +1,6 @@
 {
   "name": "tickflow-workspace",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "private": true,
   "description": "刻度 TickFlow 开发工作区（只做命令编排，无运行时依赖；真正的 Electron 依赖在 src/main）",
   "scripts": {
