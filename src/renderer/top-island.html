@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>刻度 · 顶部岛</title>
+<link rel="stylesheet" href="css/top-island.css">
+</head>
+<body>
+<div class="isl" id="island">
+  <div class="isl-head" id="head" role="button" tabindex="0" aria-expanded="false">
+    <span class="isl-dot" id="dot"></span>
+    <span class="isl-task" id="task">今日无进行中任务</span>
+    <span class="isl-right" id="right"></span>
+    <button class="isl-chev" id="chev" aria-label="展开"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  </div>
+  <div class="isl-panel" id="panel" hidden>
+    <div class="isl-line" id="line"></div>
+    <div class="isl-reminders" id="reminders"></div>
+    <div class="isl-actions">
+      <button class="isl-btn" data-act="open-main">打开刻度</button>
+      <button class="isl-btn pri" data-act="toggle-focus" id="focus-btn">开始专注</button>
+    </div>
+  </div>
+</div>
+<script src="js/modules/top-island.js"></script>
+</body>
+</html>

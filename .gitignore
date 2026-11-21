@@ -1,0 +1,14 @@
+# 生产副本：唯一开发入口
+node_modules/
+src/main/stage/
+build/dist/
+build/release/
+_dump/
+artifacts/
+# 历史文档含本机路径，不随公开仓库分发（本地文件保留）
+docs/iteration-112/
+# 本地生成的 HTML 分享包
+.trae-html-share-packages/
+*.log
+.DS_Store
+Thumbs.db

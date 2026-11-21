@@ -1,0 +1,145 @@
+/* ==========================================================================
+   主题层 v1.13 — Kun 风格 9 套配色 token
+   加载顺序：app.css → extra.css → refresh.css → theme.css（本文件）→ features.css
+   1) :root 写出 Kun 默认 dark 兜底，[data-mode="light"] 写默认 light 兜底，
+      避免 appearance.js 未执行时闪白/闪黑。
+   2) appearance.js 运行时把 schemes.json 的计算值写到 <html> 的行内变量上，
+      行内变量优先级高于本文件的兜底块，因此切换方案只换颜色、不重建 DOM。
+   3) 旧 token 名（--tx/--ac/--line…）以别名形式保留，v1.12 的 12 个视图组件
+      自动消费新配色，避免重写全部组件造成回归。
+   色值来源：docs/handoff/schemes.json（不得在组件里写裸 hex）。
+   ========================================================================== */
+
+/* ---------- 1. 兜底：Kun 默认 dark ---------- */
+:root{
+  --bg:#0A1220;
+  --panel:#0F1A2B;
+  --panel-2:#13223A;
+  --panel-3:#182A45;
+  --border:#1E2F47;
+  --border-strong:#2B405C;
+  --text:#E6EDF7;
+  --text-2:#9AAEC8;
+  --text-3:#7A8DA8;
+  --accent:#5AA7FF;
+  --accent-2:#8CC8FF;
+  --accent-ink:#07101E;
+  --accent-soft:rgba(90,167,255,.14);
+  --success:#3DDC97;
+  --warning:#F5B544;
+  --danger:#FF6B81;
+  --selection:#16294A;
+
+  --sh-1:0 1px 2px rgba(0,0,0,.28);
+  --sh-2:0 10px 28px rgba(0,0,0,.34);
+  --sh-3:0 24px 60px rgba(0,0,0,.50);
+
+  --font-scale:1;
+  --content-w:896px;
+  --row-h:40px;
+
+  /* 品牌识别（I-15：刻意固定，不随方案变化） */
+  --brand-1:#7BA6FF;
+  --brand-2:#3E6FE0;
+  --brand-ink:#FFFFFF;
+
+  /* 侧栏彩色图标块：承担分组识别，固定色相，不随方案换 */
+  --ic-work:#5AA7FF;
+  --ic-view:#37C2AE;
+  --ic-tool:#F5A623;
+  --ic-wish:#FF7A95;
+  --ic-set:#A78BFA;
+  --ic-help:#8C8C8C;
+
+  color-scheme:dark;
+}
+
+/* ---------- 2. 兜底：Kun 默认 light ---------- */
+[data-mode="light"]{
+  --bg:#F4F6FA;
+  --panel:#FFFFFF;
+  --panel-2:#F7F9FC;
+  --panel-3:#EEF3FA;
+  --border:#E2E8F0;
+  --border-strong:#CBD5E1;
+  --text:#16202F;
+  --text-2:#52627A;
+  --text-3:#5F6F82;
+  --accent:#2768C2;
+  --accent-2:#5FA8F5;
+  --accent-ink:#FFFFFF;
+  --accent-soft:rgba(47,124,224,.12);
+  --success:#0E8F62;
+  --warning:#9A5B00;
+  --danger:#C62F4A;
+  --selection:#E8F1FF;
+
+  --sh-1:0 1px 2px rgba(16,26,45,.06);
+  --sh-2:0 8px 24px rgba(16,26,45,.10);
+  --sh-3:0 20px 48px rgba(16,26,45,.16);
+
+  color-scheme:light;
+}
+
+/* ---------- 3. v1.12 token 别名（只读新 token，禁止再写裸色） ---------- */
+:root{
+  --bg2:var(--panel);
+  --panel2:var(--panel-2);
+  --elev:var(--panel-3);
+  --line:var(--border);
+  --line2:var(--border-strong);
+  --cbx:var(--border-strong);
+  --edge:var(--border-strong);
+
+  --tx:var(--text);
+  --tx2:var(--text-2);
+  --tx3:var(--text-3);
+
+  --ac:var(--accent);
+  --ac2:var(--accent-2);
+  --ac-ink:var(--accent-ink);
+  --ac-soft:var(--accent-soft);
+
+  --ok:var(--success);
+  --warn:var(--warning);
+  --dan:var(--danger);
+  --p1:var(--accent);
+  --p2:var(--warning);
+  --p3:var(--danger);
+  --sel:var(--selection);
+}
+
+/* ---------- 4. 字号：82% = v1.12 正文 13.5px 基准，100% 才放大 ---------- */
+html{
+  font-size:calc(16px * var(--font-scale));
+}
+
+/* ---------- 5. 换肤过渡：只过渡颜色，不动尺寸 ---------- */
+html.theme-anim body,
+html.theme-anim .sidebar,
+html.theme-anim .main,
+html.theme-anim .topbar,
+html.theme-anim .content,
+html.theme-anim .drawer,
+html.theme-anim .modal,
+html.theme-anim .pop,
+html.theme-anim .toast{
+  transition:
+    background-color var(--t-base,180ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),
+    border-color var(--t-base,180ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),
+    color var(--t-base,180ms) var(--ease-out,cubic-bezier(.23,1,.32,1));
+}
+
+@media (prefers-reduced-motion:reduce){
+  html.theme-anim body,
+  html.theme-anim .sidebar,
+  html.theme-anim .main,
+  html.theme-anim .topbar,
+  html.theme-anim .content,
+  html.theme-anim .drawer,
+  html.theme-anim .modal,
+  html.theme-anim .pop,
+  html.theme-anim .toast{
+    transition:none;
+  }
+}

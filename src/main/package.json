@@ -1,0 +1,63 @@
+{
+  "name": "tickflow",
+  "productName": "TickFlow",
+  "version": "1.13.0",
+  "description": "刻度 TickFlow — 本地任务与进程管理（硅基零号机）",
+  "main": "main.js",
+  "author": {
+    "name": "硅基零号机"
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "node ../../scripts/build.mjs",
+    "pack": "node ../../scripts/build.mjs --stage-only"
+  },
+  "build": {
+    "appId": "com.guiji0.tickflow",
+    "productName": "TickFlow",
+    "copyright": "Copyright © 2026 硅基零号机",
+    "asar": true,
+    "directories": {
+      "output": "../../build/release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "ipc/**/*",
+      "package.json",
+      "www/**/*"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "legalTrademarks": "硅基零号机"
+    },
+    "compression": "normal",
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "刻度 TickFlow",
+      "installerIcon": "build/icon.ico",
+      "uninstallDisplayName": "刻度 TickFlow",
+      "artifactName": "TickFlow-Setup-${version}.exe"
+    }
+  },
+  "devDependencies": {
+    "@electron/packager": "^18.3.6",
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0"
+  }
+}

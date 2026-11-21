@@ -1,0 +1,12 @@
+{
+  "owner": "si-zero-0",
+  "repo": "tickflow",
+  "branch": "main",
+  "manifestPath": "update/latest.json",
+  "minSupported": "1.12.0",
+  "checkIntervalHours": 24,
+  "requestTimeoutMs": 8000,
+  "ghProxy": "https://gh-proxy.com/",
+  "cdnBase": "",
+  "_note": "只改 owner / repo 两行即可接入真实仓库；cdnBase 可选，填对象存储目录前缀。"
+}

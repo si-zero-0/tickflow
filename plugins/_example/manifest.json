@@ -1,0 +1,16 @@
+{
+  "id": "com.example.hello",
+  "name": "示例插件 · Hello",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "minAppVersion": "1.11.0",
+  "author": "硅基零号机",
+  "description": "演示四条扩展点里的 commands：往命令面板加一条命令。目录名以下划线开头，不会被加载，可整份复制改名启用。",
+  "enabled": false,
+  "permissions": ["commands"],
+  "extensions": ["commands"],
+  "entry": {
+    "renderer": "renderer.js",
+    "main": "main.js"
+  }
+}

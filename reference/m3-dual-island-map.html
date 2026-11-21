@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TickFlow M3 双岛 · 可编辑功能树</title>
+<style>
+  :root{
+    --bg:#F7F8FA; --panel:#FFFFFF; --text:#1F2329; --muted:#646A73;
+    --line:#D0D3D9; --line-strong:#9AA3AF; --box:#F2F3F5; --box-border:#E1E4E9;
+    --root:#3370FF; --root-2:#245BDB; --accent:#3370FF; --accent-soft:rgba(51,112,255,.16);
+    --hit:#FFE58F; --shadow:0 1px 2px rgba(31,35,41,.05),0 4px 12px rgba(31,35,41,.04);
+    --nodebar-bg:rgba(255,255,255,.92);
+  }
+  body[data-theme="dark"]{
+    --bg:#0E1015; --panel:#171A21; --text:#E6E8EB; --muted:#9AA0A6;
+    --line:#2C313C; --line-strong:#5A6272; --box:#1B1F27; --box-border:#2A2F3A;
+    --root:#4C8DFF; --root-2:#3B7BEA; --accent:#6EA8FF; --accent-soft:rgba(110,168,255,.2);
+    --hit:#6B5A1F; --shadow:0 1px 2px rgba(0,0,0,.28),0 8px 22px rgba(0,0,0,.24);
+    --nodebar-bg:rgba(23,26,33,.94);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;overflow:hidden;}
+  body{
+    display:flex;flex-direction:column;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    flex:none;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);
+    box-shadow:0 1px 0 rgba(0,0,0,.02);z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;min-width:260px;}
+  .logo{
+    width:34px;height:34px;border-radius:9px;background:linear-gradient(160deg,var(--root),var(--root-2));
+    color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center;letter-spacing:.2px;
+    box-shadow:0 4px 12px rgba(51,112,255,.28);
+  }
+  .brand h1{font-size:15px;line-height:1.2;margin:0;font-weight:700;letter-spacing:.2px;}
+  .brand p{font-size:11.5px;line-height:1.3;margin:2px 0 0;color:var(--muted);}
+  .tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto;}
+  .tools input[type="search"]{
+    width:190px;height:30px;border:1px solid var(--line);border-radius:7px;background:var(--bg);
+    color:var(--text);padding:0 10px;font-size:12px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .tools input[type="search"]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .tools input::placeholder{color:var(--muted);}
+  .tbtn{
+    height:30px;padding:0 9px;border:1px solid transparent;border-radius:7px;background:transparent;
+    color:var(--muted);font-size:12px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s,border-color .12s;
+  }
+  .tbtn:hover{background:var(--box);color:var(--text);border-color:var(--box-border);}
+  .tbtn:active{transform:translateY(1px);}
+  .tbtn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .tbtn.primary:hover{filter:brightness(1.05);color:#fff;}
+  .zoom-wrap{display:flex;align-items:center;gap:2px;padding:0 4px;border-left:1px solid var(--line);margin-left:2px;}
+  #zoomLabel{min-width:38px;text-align:center;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  #viewport{
+    flex:1;overflow:auto;position:relative;cursor:grab;background:
+      radial-gradient(circle at 1px 1px, rgba(127,127,127,.13) 1px, transparent 0) 0 0/22px 22px;
+  }
+  #viewport.dragging{cursor:grabbing;}
+  #canvas{
+    position:relative;display:inline-block;min-width:100%;min-height:100%;
+    padding:40px 64px;transform-origin:0 0;
+  }
+  #nodes{position:relative;z-index:2;display:inline-block;}
+  #links{position:absolute;left:0;top:0;z-index:1;pointer-events:none;overflow:visible;}
+  #links path{fill:none;stroke:var(--line-strong);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+  .node{display:flex;align-items:center;gap:30px;position:relative;}
+  .kids{display:flex;flex-direction:column;justify-content:center;gap:5px;}
+  .box{
+    position:relative;display:flex;flex-direction:column;gap:3px;min-width:104px;max-width:330px;
+    padding:7px 11px;border:1px solid var(--box-border);border-radius:8px;background:var(--box);
+    box-shadow:var(--shadow);cursor:default;transition:border-color .12s,box-shadow .12s,background .12s;
+  }
+  .box:hover{border-color:var(--line-strong);}
+  .box.selected{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow);}
+  .box.root{
+    background:linear-gradient(160deg,var(--root),var(--root-2));border-color:var(--root);
+    color:#fff;padding:12px 20px;min-width:154px;max-width:380px;border-radius:10px;
+    box-shadow:0 10px 28px rgba(51,112,255,.26);
+  }
+  .label{
+    font-size:13px;line-height:1.38;font-weight:600;letter-spacing:.1px;
+    white-space:pre-wrap;word-break:break-word;outline:none;border-radius:3px;
+  }
+  .box.root .label{font-size:17px;font-weight:750;letter-spacing:.3px;}
+  .note{font-size:11px;line-height:1.45;color:var(--muted);white-space:pre-wrap;word-break:break-word;max-width:306px;}
+  .box.root .note{color:rgba(255,255,255,.78);font-size:11.5px;max-width:340px;}
+  .label[contenteditable="true"]{
+    background:var(--panel);box-shadow:0 0 0 2px var(--accent);padding:0 3px;margin:0 -3px;
+    cursor:text;user-select:text;
+  }
+  .box.root .label[contenteditable="true"]{color:var(--text);}
+  .label.hit{background:var(--hit);box-shadow:0 0 0 2px var(--hit);}
+  .box.root .label.hit{color:#1F2329;}
+
+  .toggle{
+    position:absolute;right:-27px;top:50%;transform:translate(50%,-50%);
+    width:20px;height:20px;padding:0;border:1px solid var(--line-strong);border-radius:50%;
+    background:var(--panel);color:var(--text);font-size:13px;font-weight:600;line-height:1;
+    display:grid;place-items:center;cursor:pointer;z-index:4;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);transition:background .12s,color .12s,border-color .12s;
+  }
+  .toggle:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .toggle.leaf-add{opacity:0;pointer-events:none;}
+  .box:hover .toggle.leaf-add,.box.selected .toggle.leaf-add{opacity:1;pointer-events:auto;}
+
+  #nodebar{
+    position:fixed;left:50%;bottom:52px;transform:translateX(-50%) translateY(6px);
+    display:none;align-items:center;gap:4px;padding:6px;border:1px solid var(--line);
+    border-radius:10px;background:var(--nodebar-bg);backdrop-filter:blur(10px);
+    box-shadow:0 12px 32px rgba(0,0,0,.16);z-index:60;opacity:0;transition:opacity .16s,transform .16s;
+  }
+  #nodebar.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
+  #nodebar-title{max-width:180px;padding:0 8px;font-size:11.5px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--line);}
+  .nbtn{height:26px;padding:0 8px;border:1px solid transparent;border-radius:6px;background:transparent;
+    color:var(--text);font-size:11.5px;cursor:pointer;white-space:nowrap;}
+  .nbtn:hover{background:var(--box);border-color:var(--box-border);}
+  .nbtn.danger{color:#D63A57;}
+  .nbtn.danger:hover{background:rgba(214,58,87,.1);border-color:rgba(214,58,87,.3);}
+  .nbtn:disabled{opacity:.35;cursor:not-allowed;}
+
+  footer{
+    flex:none;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:7px 18px;background:var(--panel);border-top:1px solid var(--line);
+    color:var(--muted);font-size:11px;z-index:20;
+  }
+  footer b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;}
+  footer .hint{margin-left:auto;}
+
+  #toast{
+    position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);
+    padding:8px 14px;border-radius:8px;background:#1F2329;color:#fff;font-size:12px;
+    opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:80;
+    box-shadow:0 10px 26px rgba(0,0,0,.22);
+  }
+  body[data-theme="dark"] #toast{background:#E6E8EB;color:#15171A;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:1100px){
+    header{gap:10px;padding:10px 12px;}
+    .brand{min-width:180px;}
+    .brand p{display:none;}
+    .tools input[type="search"]{width:138px;}
+    .tbtn{padding:0 6px;font-size:11.5px;}
+  }
+  @media (max-width:900px){
+    header{gap:10px;padding:10px 12px;}
+    .brand{min-width:0;}
+    .brand p{display:none;}
+    .tools input[type="search"]{width:140px;}
+    .tbtn{padding:0 7px;}
+    #canvas{padding:28px 24px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important;}
+  }
+</style>
+</head>
+<body data-theme="light">
+<header>
+  <div class="brand">
+    <div class="logo">M3</div>
+    <div>
+      <h1>M3 双岛 · 功能树</h1>
+      <p>底部主岛保留 + 顶部迷你岛新增 · 两套状态同步</p>
+    </div>
+  </div>
+  <div class="tools">
+    <input id="search" type="search" placeholder="搜索功能…" autocomplete="off" aria-label="搜索功能">
+    <button class="tbtn" data-act="expand-all" title="展开所有节点">展开全部</button>
+    <button class="tbtn" data-act="collapse-all" title="折叠到一级分支">折叠全部</button>
+    <button class="tbtn" data-act="fit" title="缩放到适应窗口">适应</button>
+    <span class="zoom-wrap">
+      <button class="tbtn" data-act="zoom-out" title="缩小">−</button>
+      <span id="zoomLabel">100%</span>
+      <button class="tbtn" data-act="zoom-in" title="放大">+</button>
+    </span>
+    <button class="tbtn" data-act="export" title="导出 JSON（可进版本库）">导出</button>
+    <button class="tbtn" data-act="import" title="导入 JSON">导入</button>
+    <button class="tbtn" data-act="reset" title="恢复默认树">重置</button>
+    <button class="tbtn" data-act="theme" id="themeBtn" title="切换明暗">深色</button>
+  </div>
+</header>
+
+<div id="viewport" tabindex="0">
+  <div id="canvas">
+    <svg id="links" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="nodes"></div>
+  </div>
+</div>
+
+<div id="nodebar" role="toolbar" aria-label="节点操作">
+  <span id="nodebar-title">未选中</span>
+  <button class="nbtn" data-node-act="child">+ 子节点</button>
+  <button class="nbtn" data-node-act="sibling">+ 同级</button>
+  <button class="nbtn" data-node-act="rename">重命名</button>
+  <button class="nbtn" data-node-act="toggle">折叠</button>
+  <button class="nbtn danger" data-node-act="delete">删除</button>
+</div>
+
+<footer>
+  <span><b id="stat-nodes">0</b> 节点 · <b id="stat-leaves">0</b> 叶子 · <b id="stat-depth">0</b> 层</span>
+  <span id="saveState">自动保存</span>
+  <span class="hint">双击文字编辑 · 节点右侧 +/− 增删/折叠 · 选中后底部工具栏 · Ctrl+Z/Y 撤销重做</span>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<input id="file-input" type="file" accept=".json,application/json" hidden>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. 默认树：M3 双岛的全部功能
+   ============================================================ */
+let uid = 0;
+const RAW = ['M3 双岛', '底部主岛保留 + 顶部迷你岛新增，两套状态同步', [
+
+  ['1 形态与窗口', '两个岛各自的形态、位置、交互与共存规则', [
+    ['1.1 底部主岛（沿用 v1.12）', '不改变现有体验', [
+      ['收起态', '当前任务 / 今日 N 项 / 状态点'],
+      ['展开态', '任务卡 / 今日 5 条 / 6 个操作'],
+      ['提醒态', '完成 / 10 分钟后 / 知道了'],
+      ['交互', '点击 / Esc / 点外部 / 8s 收起'],
+      ['设置', '启用 / 到点自动展开'],
+    ]],
+    ['1.2 顶部迷你岛（新增）', '顶部独立窗口，默认关闭', [
+      ['窗口', '无边框 / 透明 / 置顶 / 不进任务栏'],
+      ['焦点', '不抢焦点 / 点击穿透（仅可点区）'],
+      ['位置', '顶部居中 / 多显示器 / DPI 夹取'],
+      ['形态', '胶囊 / 面板 / 极简细线'],
+      ['交互', '悬停 0.2s / 点击 / 滚轮 / 离开 0.12s'],
+      ['显示', '当前任务 / 倒计时 / 提醒数 / 专注'],
+      ['操作', '完成 / 推迟 / 明天 / 专注 / 打开主窗'],
+      ['全屏', '自动隐藏 / 浏览器贴顶极简'],
+    ]],
+    ['1.3 双岛共存', '两套 UI 不打架', [
+      ['提醒唯一', '同一任务只在一端弹'],
+      ['提醒归属', '顶部优先 / 底部优先 / 跟随焦点'],
+      ['主窗最小化', '顶部岛继续常驻'],
+      ['主窗关闭', '顶部岛隐藏或留托盘'],
+      ['顶部点击', '唤起主窗 + 定位任务'],
+      ['布局避让', '顶部 / 底部不重叠'],
+      ['默认策略', 'M3 默认只开底部，顶部手动开'],
+    ]],
+  ]],
+
+  ['2 状态同步（核心）', '双窗口共享同一份 Store，事件经主进程中转', [
+    ['2.1 单一数据源', '避免两套状态各自为政', [
+      ['Store', '任务 / 提醒 / 专注 / 主题 / 设置'],
+      ['版本号', '每次变更递增，旧消息丢弃'],
+      ['变更事件', 'type + payload + source + ts'],
+      ['乐观更新', '先改本地，失败回滚'],
+    ]],
+    ['2.2 传输通道', '双窗口 → 主进程 IPC Hub', [
+      ['消息格式', 'type / payload / version / source / ts'],
+      ['顺序', 'seq + 幂等，重复消息不重复执行'],
+      ['节流', '50ms 合并；倒计时只传秒'],
+      ['断连', '窗口未加载时排队，加载后重放'],
+    ]],
+    ['2.3 同步范围', '哪些状态必须同步', [
+      ['任务', 'CRUD / 完成 / 改期 / 复制'],
+      ['提醒', '队列 / notifiedOn / 当前条'],
+      ['专注', '开始 / 暂停 / 剩余 / 结束'],
+      ['主题', '主题 / 强调色 / 密度'],
+      ['设置', '顶部岛开关 / 位置 / 归属'],
+      ['窗口', '显示 / 收起 / 展开 / 提醒态'],
+    ]],
+    ['2.4 一致性与冲突', '最容易出 bug 的地方', [
+      ['LWW', '最后写入胜出，带 source 防回声'],
+      ['同时完成', '同一任务双端同时勾选'],
+      ['提醒去重', 'notifiedOn 只由主轮询写'],
+      ['睡眠唤醒', '重新对时，不补弹过期提醒'],
+      ['窗口崩溃', '重建后从 Store 恢复'],
+    ]],
+    ['2.5 性能', '两个窗口不能各跑一套定时器', [
+      ['频率上限', '非倒计时消息 ≤ 20 条/秒'],
+      ['倒计时', '只传 mm:ss，不传毫秒'],
+      ['渲染', '不可见窗口暂停 tick'],
+      ['延迟', '同步延迟 P95 < 100ms'],
+    ]],
+  ]],
+
+  ['3 顶部迷你岛功能', '只做“当前任务 + 提醒 + 专注”，不搬 12 个页面', [
+    ['3.1 收起态', '顶部一条 360×40 胶囊（可配置）', [
+      ['当前任务', '标题 1 行省略'],
+      ['今日计数', '今日 N 项 / 剩余 N'],
+      ['倒计时', 'R1 mm:ss'],
+      ['提醒数', 'N 条到点'],
+      ['状态点', '蓝 / 黄 / 红 / 绿'],
+    ]],
+    ['3.2 展开态', '360 宽迷你面板', [
+      ['当前任务卡', '标题 / 清单 / 优先级 / 时间'],
+      ['今日待办', '最多 3 条，可勾选'],
+      ['操作', '完成 / 推迟 / 明天 / 专注 / 打开 / 新建'],
+      ['迷你模式', '单行 / 仅图标'],
+      ['底部入口', '打开全部待办 →'],
+    ]],
+    ['3.3 提醒态', '与底部岛二选一', [
+      ['到点了', '任务标题 + 时间'],
+      ['三动作', '完成 / 10 分钟后 / 知道了'],
+      ['队列', '还有 N 条 / 下一条'],
+    ]],
+    ['3.4 专注态', '复用番茄钟状态', [
+      ['剩余时间', 'mm:ss 大字'],
+      ['进度环', '番茄水位 / 圆环'],
+      ['控制', '暂停 / 继续 / 结束'],
+    ]],
+    ['3.5 空态 / 全完成', '不要留空面板', [
+      ['今日无任务', '按 N 新建'],
+      ['全部完成', '绿色状态点 + 文案'],
+      ['新建入口', '唤起主窗快速添加'],
+    ]],
+    ['3.6 极简 / 隐藏', '不打扰', [
+      ['极简细线', '44×4.5，仅一条线'],
+      ['悬停展开', '持续 0.4s 才展开'],
+      ['全屏隐藏', '前台全屏自动隐藏'],
+      ['手动隐藏', '托盘 / 快捷键恢复'],
+    ]],
+  ]],
+
+  ['4 底部主岛增强', '保持现有体验，只加“与顶部岛协作”', [
+    ['4.1 既有三态保持', '收起 / 展开 / 提醒不改', [
+      ['尺寸', '560×40 / 560×342'],
+      ['操作', '6 个操作 + 今日 5 条'],
+      ['队列', '≤20 条，逐条确认'],
+    ]],
+    ['4.2 提醒分工', '避免同一任务弹两次', [
+      ['顶部优先', '底部只显示计数'],
+      ['底部优先', '顶部只显示红点'],
+      ['同时到点', '按 taskId 去重'],
+    ]],
+    ['4.3 主窗定位', '顶部点击后的落点', [
+      ['唤起主窗', 'show + focus'],
+      ['定位任务', '打开 today + 任务抽屉'],
+    ]],
+    ['4.4 设置入口', '不藏功能', [
+      ['底部设置', '新增“顶部迷你岛”分组'],
+      ['顶部右键', '显示 / 隐藏 / 设置 / 退出'],
+    ]],
+  ]],
+
+  ['5 共享能力', '两个岛复用同一套逻辑，不复制代码', [
+    ['5.1 当前任务选择', 'TF.pickCurrentTask R1–R5'],
+    ['5.2 提醒队列', '≤20，逐条确认，8s 收起'],
+    ['5.3 专注计时', 'Pomo 开始 / 暂停 / 剩余'],
+    ['5.4 快速添加', '顶部唤起主窗输入'],
+    ['5.5 主题', '6 主题 × 6 强调色'],
+    ['5.6 设置', '持久化 / 迁移 / 快照'],
+  ]],
+
+  ['6 外观与设置', '顶部岛独立外观，主题跟随全局', [
+    ['6.1 主题同步', '双岛同帧换肤', [
+      ['6 主题', '石墨 / 极夜 / 苔原 / 晨光 / 雾蓝 / 纸感'],
+      ['6 强调色', '蓝 / 青 / 绿 / 紫 / 橙 / 玫红'],
+      ['同帧', '一次事务内更新两端'],
+    ]],
+    ['6.2 顶部外观', '独立于底部岛', [
+      ['尺寸', '宽 / 高 / 圆角'],
+      ['材质', '透明度 / 背景 / 边框'],
+      ['排版', '字号 / 密度'],
+    ]],
+    ['6.3 位置', '多显示器也不跑偏', [
+      ['对齐', '顶部居中 / 左右偏移'],
+      ['显示器', '主屏 / 光标所在屏'],
+      ['吸附', '屏幕边缘 / 工作区夹取'],
+    ]],
+    ['6.4 内容开关', '显示什么由用户决定', [
+      ['当前任务', '开 / 关'],
+      ['计数 / 倒计时', '开 / 关'],
+      ['提醒 / 专注', '开 / 关'],
+    ]],
+    ['6.5 动效', '与全局一致', [
+      ['悬停 / 展开 / 收起', '时长 / 曲线'],
+      ['减少动效', '跟随系统 / 强制关闭'],
+    ]],
+    ['6.6 启动与托盘', '常驻能力', [
+      ['开机启动', '登录时启动'],
+      ['托盘常驻', '关闭主窗不退出'],
+      ['单实例', '二次启动聚焦'],
+    ]],
+  ]],
+
+  ['7 系统集成', 'Electron 主进程要补的窗口能力', [
+    ['7.1 顶部窗口', '独立 BrowserWindow', [
+      ['创建 / 销毁', '随设置开关'],
+      ['置顶层级', 'alwaysOnTop'],
+      ['点击穿透', 'setIgnoreMouseEvents + 命中区'],
+      ['焦点', 'focusable:false / 编辑时例外'],
+    ]],
+    ['7.2 屏幕', '多显示器 / DPI', [
+      ['全屏检测', '前台全屏隐藏'],
+      ['显示器拔插', '回到主屏'],
+      ['DPI', '缩放后尺寸夹取'],
+    ]],
+    ['7.3 主窗', '生命周期', [
+      ['最小化', '顶部岛继续'],
+      ['关闭到托盘', '不退出'],
+      ['启动恢复', '恢复双岛状态'],
+    ]],
+    ['7.4 稳定性', '不能让顶部岛拖垮主窗', [
+      ['崩溃恢复', '重建窗口'],
+      ['渲染退出', '主窗兜底'],
+      ['单实例', '避免双开'],
+    ]],
+  ]],
+
+  ['8 快捷操作与入口', '让用户找得到、关得掉', [
+    ['8.1 全局快捷键', 'Electron globalShortcut', [
+      ['开合顶部岛', '可配置'],
+      ['快速添加', 'Ctrl+Alt+Space 已有'],
+      ['专注开始/暂停', '可配置'],
+    ]],
+    ['8.2 托盘菜单', '常驻入口', [
+      ['显示顶部岛', '勾选态'],
+      ['仅底部 / 双岛', '模式切换'],
+      ['退出', '真正退出'],
+    ]],
+    ['8.3 命令面板', '应用内入口', [
+      ['显示/隐藏顶部岛', '命令'],
+      ['切换提醒归属', '命令'],
+      ['定位顶部岛', '命令'],
+    ]],
+  ]],
+
+  ['9 数据与存储', '新增字段必须能迁移、能回滚', [
+    ['9.1 新增 settings', '全部带默认值', [
+      ['topIsland.enabled', '默认 false'],
+      ['position / offset / monitor', '顶部居中'],
+      ['size / opacity / radius', '360×40 / 100% / 14px'],
+      ['reminderOwner', 'bottom / top / focus'],
+    ]],
+    ['9.2 迁移', 'v1.12 → v1.13', [
+      ['默认关闭', '老用户无感'],
+      ['旧数据不变', '任务 / 愿望 / 主题'],
+      ['缺字段', '补默认值'],
+    ]],
+    ['9.3 快照 / 恢复', '包含顶部岛设置', [
+      ['快照', '整 data 深拷贝'],
+      ['恢复', '重建顶部窗口'],
+    ]],
+  ]],
+
+  ['10 兼容与降级', '顶部岛失败不能影响主流程', [
+    ['10.1 顶部失败', '隐藏 + toast，底部继续'],
+    ['10.2 显示器拔插', '回主屏 / 夹取'],
+    ['10.3 睡眠唤醒', '重新对时，不补弹'],
+    ['10.4 高 DPI', '尺寸 / 字号夹取'],
+    ['10.5 旧数据', '迁移 + 回滚'],
+    ['10.6 无障碍', '键盘 / 读屏 / 减少动效'],
+  ]],
+
+  ['11 验收与指标', 'M3 的硬门', [
+    ['11.1 P0 功能', '18 条全部通过'],
+    ['11.2 同步延迟', 'P95 < 100ms'],
+    ['11.3 提醒重复率', '0'],
+    ['11.4 内存增量', '双窗口 < 80MB'],
+    ['11.5 分辨率', '1060 / 1400 / 4K 无穿帮'],
+    ['11.6 崩溃恢复', '< 3s'],
+    ['11.7 可关闭', '一键关顶部岛'],
+  ]],
+
+  ['12 风险与取舍', '成本最高的一版，先列清楚', [
+    ['12.1 双窗口复杂度', '窗口 / IPC / 焦点'],
+    ['12.2 提醒重复/丢失', '队列归属与去重'],
+    ['12.3 点击穿透', '命中区随内容变化'],
+    ['12.4 多显示器/DPI', '坐标与缩放'],
+    ['12.5 维护成本', '两套 UI 状态'],
+    ['12.6 默认策略', 'M3 默认关闭顶部岛'],
+  ]],
+
+]];
+
+/* ============================================================
+   2. 状态与工具
+   ============================================================ */
+const LS_TREE = 'tf-m3-dual-island-tree-v1';
+const LS_UI = 'tf-m3-dual-island-ui-v1';
+const state = {
+  tree: null, selected: null, hits: new Set(),
+  scale: 1, theme: 'light', history: [], future: [],
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const viewport = $('#viewport');
+const canvas = $('#canvas');
+const nodesEl = $('#nodes');
+const links = $('#links');
+const nodebar = $('#nodebar');
+const toastEl = $('#toast');
+
+function newId(){ return 'n' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function build(arr, depth){
+  const [label, note, kids, expanded] = arr;
+  const node = { id: newId(), label: label || '未命名', note: note || '', children: [], collapsed: false };
+  if (Array.isArray(kids) && kids.length) {
+    node.children = kids.map(k => build(k, depth + 1));
+    node.collapsed = !(expanded === true || depth === 0);
+  }
+  return node;
+}
+
+function defaultTree(){ uid = 0; return build(RAW, 0); }
+
+function normalize(node){
+  if (!node || typeof node !== 'object') return null;
+  const out = {
+    id: typeof node.id === 'string' && node.id ? node.id : newId(),
+    label: typeof node.label === 'string' && node.label.trim() ? node.label.trim() : '未命名',
+    note: typeof node.note === 'string' ? node.note : '',
+    children: [],
+    collapsed: !!node.collapsed,
+  };
+  if (Array.isArray(node.children)) out.children = node.children.map(normalize).filter(Boolean);
+  return out;
+}
+
+function walk(node, fn, parent){
+  fn(node, parent);
+  node.children.forEach(c => walk(c, fn, node));
+}
+function findNode(id){
+  let hit = null;
+  walk(state.tree, n => { if (n.id === id) hit = n; });
+  return hit;
+}
+function findParent(id){
+  let hit = null;
+  walk(state.tree, (n, p) => { if (n.id === id) hit = p; });
+  return hit;
+}
+function countTree(node){
+  let nodes = 0, leaves = 0, maxDepth = 0;
+  const rec = (n, d) => {
+    nodes++; maxDepth = Math.max(maxDepth, d);
+    if (!n.children.length) leaves++;
+    n.children.forEach(c => rec(c, d + 1));
+  };
+  rec(node, 1);
+  return { nodes, leaves, maxDepth };
+}
+
+/* ---------- 历史 / 保存 ---------- */
+let saveTimer = 0;
+function snapshot(){
+  state.history.push(JSON.stringify(state.tree));
+  if (state.history.length > 60) state.history.shift();
+  state.future = [];
+}
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(LS_TREE, JSON.stringify(state.tree));
+      localStorage.setItem(LS_UI, JSON.stringify({ theme: state.theme, scale: state.scale }));
+      $('#saveState').textContent = '已保存 ' + new Date().toLocaleTimeString('zh-CN', {hour12:false});
+    } catch (e) {
+      $('#saveState').textContent = '保存失败';
+    }
+  }, 220);
+}
+function undo(){
+  if (document.activeElement && document.activeElement.isContentEditable) return;
+  if (!state.history.length) return;
+  state.future.push(JSON.stringify(state.tree));
+  state.tree = normalize(JSON.parse(state.history.pop()));
+  state.selected = null;
+  save(); render(); drawLinks(); showToast('已撤销');
+}
+function redo(){
+  if (document.activeElement && document.activeElement.isContentEditable) return;
+  if (!state.future.length) return;
+  state.history.push(JSON.stringify(state.tree));
+  state.tree = normalize(JSON.parse(state.future.pop()));
+  state.selected = null;
+  save(); render(); drawLinks(); showToast('已重做');
+}
+
+/* ---------- toast ---------- */
+let toastTimer = 0;
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
+}
+
+/* ============================================================
+   3. 渲染
+   ============================================================ */
+function render(){
+  nodesEl.innerHTML = '';
+  if (!state.tree) return;
+  nodesEl.appendChild(renderNode(state.tree, 0));
+  updateStats();
+  requestAnimationFrame(() => {
+    drawLinks();
+    if (state.selected) select(state.selected);
+  });
+}
+
+function renderNode(node, depth){
+  const wrap = document.createElement('div');
+  wrap.className = 'node depth-' + depth;
+  wrap.dataset.id = node.id;
+
+  const box = document.createElement('div');
+  box.className = 'box' + (depth === 0 ? ' root' : '');
+  box.dataset.id = node.id;
+
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.dataset.id = node.id;
+  label.textContent = node.label;
+  label.contentEditable = 'false';
+  label.spellcheck = false;
+  label.setAttribute('role', 'textbox');
+  label.setAttribute('aria-label', '节点名称，双击编辑');
+  label.addEventListener('dblclick', e => { e.stopPropagation(); startEdit(label, node); });
+  label.addEventListener('input', () => requestAnimationFrame(drawLinks));
+
+  const note = document.createElement('div');
+  note.className = 'note';
+  note.textContent = node.note || '';
+  note.style.display = node.note ? '' : 'none';
+
+  box.appendChild(label);
+  box.appendChild(note);
+  box.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    select(node.id);
+  });
+
+  if (node.children.length) {
+    const t = document.createElement('button');
+    t.className = 'toggle';
+    t.type = 'button';
+    t.textContent = node.collapsed ? '+' : '−';
+    t.title = node.collapsed ? '展开' : '折叠';
+    t.setAttribute('aria-label', t.title);
+    t.addEventListener('click', e => {
+      e.stopPropagation();
+      snapshot();
+      node.collapsed = !node.collapsed;
+      if (node.collapsed && state.selected && isDescendant(node, state.selected)) state.selected = node.id;
+      save(); render(); drawLinks();
+    });
+    box.appendChild(t);
+  } else {
+    const add = document.createElement('button');
+    add.className = 'toggle leaf-add';
+    add.type = 'button';
+    add.textContent = '+';
+    add.title = '添加子节点';
+    add.setAttribute('aria-label', '添加子节点');
+    add.addEventListener('click', e => { e.stopPropagation(); addChild(node); });
+    box.appendChild(add);
+  }
+
+  wrap.appendChild(box);
+  if (node.children.length && !node.collapsed) {
+    const kids = document.createElement('div');
+    kids.className = 'kids';
+    node.children.forEach(c => kids.appendChild(renderNode(c, depth + 1)));
+    wrap.appendChild(kids);
+  }
+  return wrap;
+}
+
+function isDescendant(parent, id){
+  if (!parent || !id) return false;
+  let found = false;
+  walk(parent, n => { if (n.id === id && n !== parent) found = true; });
+  return found;
+}
+
+/* ---------- 连线 ---------- */
+let linkRaf = 0;
+function drawLinks(){
+  cancelAnimationFrame(linkRaf);
+  linkRaf = requestAnimationFrame(() => {
+    if (!state.tree) return;
+    const z = state.scale || 1;
+    const cr = canvas.getBoundingClientRect();
+    const boxes = new Map();
+    $$('.box').forEach(b => {
+      const r = b.getBoundingClientRect();
+      boxes.set(b.dataset.id, {
+        left: (r.left - cr.left) / z,
+        top: (r.top - cr.top) / z,
+        right: (r.right - cr.left) / z,
+        bottom: (r.bottom - cr.top) / z,
+      });
+    });
+
+    const paths = [];
+    $$('.node').forEach(wrap => {
+      const kidsEl = wrap.querySelector(':scope > .kids');
+      if (!kidsEl) return;
+      const p = boxes.get(wrap.dataset.id);
+      const children = Array.from(kidsEl.children).map(k => boxes.get(k.dataset.id)).filter(Boolean);
+      if (!p || !children.length) return;
+
+      const y1 = (p.top + p.bottom) / 2;
+      const x1 = p.right;
+      const x2 = Math.min(...children.map(c => c.left));
+      const mid = x1 + Math.max(18, (x2 - x1) * 0.46);
+      const yOf = c => (c.top + c.bottom) / 2;
+      const firstY = yOf(children[0]);
+      const lastY = yOf(children[children.length - 1]);
+
+      // 父节点到主干的横线
+      paths.push('M ' + x1 + ' ' + y1 + ' H ' + mid);
+      // 主干（首个孩子中心 → 末个孩子中心）
+      if (Math.abs(lastY - firstY) > 0.5) {
+        paths.push('M ' + mid + ' ' + firstY + ' V ' + lastY);
+      }
+      // 每个孩子的圆角肘线
+      children.forEach(c => {
+        const y = yOf(c);
+        const r = Math.min(7, Math.max(3, (c.left - mid) / 2));
+        paths.push('M ' + mid + ' ' + (y - r) + ' Q ' + mid + ' ' + y + ' ' + (mid + r) + ' ' + y + ' H ' + c.left);
+      });
+    });
+
+    links.innerHTML = paths.map(d => '<path d="' + d + '"/>').join('');
+    links.setAttribute('width', canvas.scrollWidth);
+    links.setAttribute('height', canvas.scrollHeight);
+    links.setAttribute('viewBox', '0 0 ' + canvas.scrollWidth + ' ' + canvas.scrollHeight);
+  });
+}
+
+/* ---------- 选中 / 工具栏 ---------- */
+function select(id){
+  state.selected = id;
+  $$('.box.selected').forEach(b => b.classList.remove('selected'));
+  const box = document.querySelector('.box[data-id="' + id + '"]');
+  if (box) box.classList.add('selected');
+  const node = findNode(id);
+  if (!node) { hideNodebar(); return; }
+  $('#nodebar-title').textContent = node.label;
+  const isRoot = id === state.tree.id;
+  $('[data-node-act="sibling"]').disabled = isRoot;
+  $('[data-node-act="delete"]').disabled = isRoot;
+  $('[data-node-act="toggle"]').disabled = !node.children.length;
+  $('[data-node-act="toggle"]').textContent = node.collapsed ? '展开' : '折叠';
+  nodebar.classList.add('show');
+}
+function hideNodebar(){ nodebar.classList.remove('show'); }
+function markSelected(id){
+  const box = document.querySelector('.box[data-id="' + id + '"]');
+  if (box) box.classList.add('selected');
+}
+function clearSelection(){
+  state.selected = null;
+  $$('.box.selected').forEach(b => b.classList.remove('selected'));
+  hideNodebar();
+}
+
+/* ============================================================
+   4. 编辑 / 增删
+   ============================================================ */
+function startEdit(label, node, skipHistory){
+  if (label.isContentEditable) return;
+  if (!skipHistory) snapshot();
+  label.dataset.old = node.label;
+  label.contentEditable = 'true';
+  label.focus();
+  const range = document.createRange();
+  range.selectNodeContents(label);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  const finish = (cancel) => {
+    label.contentEditable = 'false';
+    let text = cancel ? (label.dataset.old || '') : label.textContent;
+    text = String(text).replace(/\s+/g, ' ').trim();
+    if (!text) text = label.dataset.old || '未命名';
+    node.label = text;
+    label.textContent = text;
+    if (node.note) {
+      const box = label.closest('.box');
+      const n = box && box.querySelector('.note');
+      if (n) n.textContent = node.note;
+    }
+    save(); drawLinks(); select(node.id);
+  };
+
+  const onKey = e => {
+    if (e.key === 'Enter') { e.preventDefault(); label.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); label.dataset.cancel = '1'; label.blur(); }
+  };
+  label.addEventListener('keydown', onKey);
+  label.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text.replace(/\s+/g, ' '));
+  });
+  label.addEventListener('blur', () => {
+    label.removeEventListener('keydown', onKey);
+    finish(label.dataset.cancel === '1');
+    delete label.dataset.cancel;
+  }, { once: true });
+}
+
+function startEditById(id, skipHistory){
+  const label = document.querySelector('.label[data-id="' + id + '"]');
+  const node = findNode(id);
+  if (!label || !node) return;
+  label.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  setTimeout(() => startEdit(label, node, skipHistory), 120);
+}
+
+function addChild(parent){
+  snapshot();
+  const child = { id: newId(), label: '新功能', note: '', children: [], collapsed: false };
+  parent.children.push(child);
+  parent.collapsed = false;
+  state.selected = child.id;
+  save(); render(); drawLinks(); select(child.id);
+  setTimeout(() => startEditById(child.id, true), 60);
+}
+function addSibling(node){
+  if (node.id === state.tree.id) { addChild(node); return; }
+  const parent = findParent(node.id);
+  if (!parent) return;
+  snapshot();
+  const sib = { id: newId(), label: '新功能', note: '', children: [], collapsed: false };
+  const idx = parent.children.findIndex(c => c.id === node.id);
+  parent.children.splice(idx + 1, 0, sib);
+  state.selected = sib.id;
+  save(); render(); drawLinks(); select(sib.id);
+  setTimeout(() => startEditById(sib.id, true), 60);
+}
+function deleteNode(node){
+  if (node.id === state.tree.id) return;
+  const parent = findParent(node.id);
+  if (!parent) return;
+  if (!confirm('删除「' + node.label + '」及其子节点？')) return;
+  snapshot();
+  parent.children = parent.children.filter(c => c.id !== node.id);
+  state.selected = parent.id;
+  save(); render(); drawLinks();
+  setTimeout(() => select(parent.id), 30);
+  showToast('已删除');
+}
+function toggleNode(node){
+  if (!node.children.length) return;
+  snapshot();
+  node.collapsed = !node.collapsed;
+  save(); render(); drawLinks();
+}
+
+/* ============================================================
+   5. 搜索
+   ============================================================ */
+let searchTimer = 0;
+function doSearch(q){
+  q = (q || '').trim().toLowerCase();
+  state.hits = new Set();
+  state.selected = null;
+  hideNodebar();
+  if (!q) {
+    $$('.label.hit').forEach(el => el.classList.remove('hit'));
+    return;
+  }
+  const hits = [];
+  const rec = (node) => {
+    const self = (node.label + ' ' + node.note).toLowerCase().includes(q);
+    let child = false;
+    node.children.forEach(c => { if (rec(c)) child = true; });
+    if (self || child) {
+      state.hits.add(node.id);
+      if (child) node.collapsed = false;
+      if (self) hits.push(node.id);
+    }
+    return self || child;
+  };
+  rec(state.tree);
+  render();
+  requestAnimationFrame(() => {
+    $$('.label').forEach(el => {
+      if (state.hits.has(el.dataset.id)) el.classList.add('hit');
+    });
+    if (hits.length) {
+      const first = document.querySelector('.box[data-id="' + hits[0] + '"]');
+      if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      showToast('找到 ' + hits.length + ' 个匹配');
+    } else {
+      showToast('没有匹配的功能');
+    }
+  });
+}
+
+/* ============================================================
+   6. 缩放 / 适应
+   ============================================================ */
+function setZoom(z){
+  state.scale = Math.max(0.28, Math.min(1.6, z));
+  canvas.style.zoom = state.scale;
+  $('#zoomLabel').textContent = Math.round(state.scale * 100) + '%';
+  requestAnimationFrame(drawLinks);
+  save();
+}
+function fit(){
+  const vw = viewport.clientWidth || 1200;
+  const vh = viewport.clientHeight || 700;
+  const w = nodesEl.scrollWidth + 150;
+  const h = nodesEl.scrollHeight + 110;
+  let z = Math.min((vw - 16) / w, (vh - 16) / h, 1);
+  setZoom(Math.max(0.3, z));
+  requestAnimationFrame(() => {
+    viewport.scrollLeft = 0;
+    viewport.scrollTop = Math.max(0, (viewport.scrollHeight - viewport.clientHeight) / 2);
+  });
+}
+function expandAll(){
+  walk(state.tree, n => { if (n.children.length) n.collapsed = false; });
+  save(); render(); drawLinks();
+  setTimeout(() => { viewport.scrollTo({ left: 0, top: 0, behavior: 'smooth' }); }, 60);
+}
+function collapseAll(){
+  walk(state.tree, n => { if (n.children.length) n.collapsed = n.id !== state.tree.id; });
+  save(); render(); drawLinks(); setTimeout(fit, 60);
+}
+
+/* ============================================================
+   7. 导出 / 导入 / 重置 / 主题
+   ============================================================ */
+function exportJSON(){
+  const payload = { app: 'TickFlow', map: 'M3 双岛', version: 1, exportedAt: new Date().toISOString(), tree: state.tree };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tickflow-m3-dual-island-tree.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  showToast('已导出 JSON');
+}
+function importJSON(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      const tree = normalize(parsed.tree || parsed);
+      if (!tree) throw new Error('no tree');
+      snapshot();
+      state.tree = tree;
+      state.selected = null;
+      save(); render(); drawLinks(); fit();
+      showToast('已导入');
+    } catch (e) {
+      showToast('导入失败：不是有效的 JSON 树');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+function resetTree(){
+  if (!confirm('恢复默认 M3 功能树？当前编辑会丢失。')) return;
+  snapshot();
+  state.tree = defaultTree();
+  state.selected = null;
+  save(); render(); drawLinks(); fit();
+  showToast('已恢复默认树');
+}
+function toggleTheme(){
+  state.theme = state.theme === 'light' ? 'dark' : 'light';
+  document.body.dataset.theme = state.theme;
+  $('#themeBtn').textContent = state.theme === 'light' ? '深色' : '浅色';
+  save();
+}
+
+/* ============================================================
+   8. 事件绑定
+   ============================================================ */
+function bind(){
+  $('#search').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    const v = e.target.value;
+    searchTimer = setTimeout(() => doSearch(v), 160);
+  });
+  $('#search').addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.target.value = ''; doSearch(''); }
+  });
+
+  document.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.act;
+      if (act === 'expand-all') expandAll();
+      if (act === 'collapse-all') collapseAll();
+      if (act === 'fit') fit();
+      if (act === 'zoom-in') setZoom(state.scale + 0.1);
+      if (act === 'zoom-out') setZoom(state.scale - 0.1);
+      if (act === 'export') exportJSON();
+      if (act === 'import') $('#file-input').click();
+      if (act === 'reset') resetTree();
+      if (act === 'theme') toggleTheme();
+    });
+  });
+
+  $('#file-input').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if (file) importJSON(file);
+    e.target.value = '';
+  });
+
+  document.querySelectorAll('[data-node-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const node = findNode(state.selected);
+      if (!node) return;
+      const act = btn.dataset.nodeAct;
+      if (act === 'child') addChild(node);
+      if (act === 'sibling') addSibling(node);
+      if (act === 'rename') startEditById(node.id);
+      if (act === 'toggle') toggleNode(node);
+      if (act === 'delete') deleteNode(node);
+    });
+  });
+
+  viewport.addEventListener('click', e => {
+    if (e.target === viewport || e.target === canvas || e.target === nodesEl) clearSelection();
+  });
+
+  // 拖动空白处平移
+  let pan = null;
+  viewport.addEventListener('pointerdown', e => {
+    if (e.target.closest('.box') || e.target.closest('button') || e.target.closest('input')) return;
+    pan = { x: e.clientX, y: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
+    viewport.classList.add('dragging');
+    try { viewport.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  viewport.addEventListener('pointermove', e => {
+    if (!pan) return;
+    viewport.scrollLeft = pan.sl - (e.clientX - pan.x);
+    viewport.scrollTop = pan.st - (e.clientY - pan.y);
+  });
+  const endPan = () => { pan = null; viewport.classList.remove('dragging'); };
+  viewport.addEventListener('pointerup', endPan);
+  viewport.addEventListener('pointercancel', endPan);
+
+  // Ctrl + 滚轮缩放
+  viewport.addEventListener('wheel', e => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    setZoom(state.scale + (e.deltaY < 0 ? 0.06 : -0.06));
+  }, { passive: false });
+
+  document.addEventListener('keydown', e => {
+    const editing = document.activeElement && document.activeElement.isContentEditable;
+    if (editing) return;
+    const meta = e.ctrlKey || e.metaKey;
+    if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (meta && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+    if (e.key === 'F2' && state.selected) { e.preventDefault(); startEditById(state.selected); return; }
+    if (e.key === 'Delete' && state.selected) {
+      const node = findNode(state.selected);
+      if (node) { e.preventDefault(); deleteNode(node); }
+      return;
+    }
+    if (e.key === 'Escape') { clearSelection(); return; }
+    if (e.key === 'Tab' && state.selected) {
+      // Tab 在选中节点上新增子节点，Shift+Tab 新增同级
+      e.preventDefault();
+      const node = findNode(state.selected);
+      if (node) e.shiftKey ? addSibling(node) : addChild(node);
+    }
+  });
+
+  // 尺寸变化后重画连线
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => requestAnimationFrame(drawLinks));
+    ro.observe(nodesEl);
+    ro.observe(canvas);
+  }
+  window.addEventListener('resize', () => requestAnimationFrame(drawLinks));
+  document.fonts && document.fonts.ready && document.fonts.ready.then(() => requestAnimationFrame(drawLinks));
+}
+
+/* ============================================================
+   9. 初始化
+   ============================================================ */
+function init(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LS_TREE) || 'null'); } catch (_) {}
+  state.tree = saved ? normalize(saved) : defaultTree();
+  if (!state.tree) state.tree = defaultTree();
+
+  let ui = {};
+  try { ui = JSON.parse(localStorage.getItem(LS_UI) || '{}'); } catch (_) {}
+  state.theme = ui.theme === 'dark' ? 'dark' : 'light';
+  document.body.dataset.theme = state.theme;
+  $('#themeBtn').textContent = state.theme === 'light' ? '深色' : '浅色';
+
+  bind();
+  render();
+  requestAnimationFrame(() => {
+    if (typeof ui.scale === 'number' && ui.scale >= 0.3 && ui.scale <= 1.6) {
+      setZoom(ui.scale);
+    } else {
+      fit();
+    }
+  });
+}
+
+function updateStats(){
+  const c = countTree(state.tree);
+  $('#stat-nodes').textContent = c.nodes;
+  $('#stat-leaves').textContent = c.leaves;
+  $('#stat-depth').textContent = c.maxDepth;
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Electron deps
+        run: npm --prefix src/main ci
+      - name: Verify
+        run: npm run verify
+      - name: Unit tests
+        run: npm test
+      - name: Build installer
+        run: npm run build
+      - name: Generate manifest + SHA256
+        shell: bash
+        run: node scripts/release.mjs --tag="${{ github.ref_name }}"
+      - name: Create GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            "build/release/TickFlow-Setup-${GITHUB_REF_NAME#v}.exe" \
+            build/release/SHA256SUMS.txt \
+            update/latest.json \
+            --generate-notes
+      - name: Reminder
+        if: always()
+        shell: bash
+        run: |
+          echo "jsDelivr 清单需要 update/latest.json 提交到 main；本工作流只上传 Release 资产，未自动提交。"
